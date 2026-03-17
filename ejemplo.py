@@ -6,7 +6,7 @@ def main():
     # Leer archivo
     input_stream = FileStream("programa.leng")
 
-    # ===== LEXER =====
+    #  LEXER 
     lexer = LenguajeLexer(input_stream)
 
     print("\nTOKENS:\n")
@@ -21,7 +21,7 @@ def main():
 
     print("EOF")
 
-    # ===== PARSER =====
+    #  PARSER 
     # Volver a leer archivo (porque el lexer ya se consumió)
     input_stream = FileStream("programa.leng")
     lexer = LenguajeLexer(input_stream)

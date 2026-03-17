@@ -62,5 +62,14 @@ class LenguajeListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LenguajeParser#errorInstr.
+    def enterErrorInstr(self, ctx:LenguajeParser.ErrorInstrContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#errorInstr.
+    def exitErrorInstr(self, ctx:LenguajeParser.ErrorInstrContext):
+        pass
+
+
 
 del LenguajeParser

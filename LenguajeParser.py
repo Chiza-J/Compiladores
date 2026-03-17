@@ -10,19 +10,20 @@ else:
 
 def serializedATN():
     return [
-        4,1,11,44,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,
-        0,1,0,1,1,5,1,17,8,1,10,1,12,1,20,9,1,1,2,1,2,1,2,4,2,25,8,2,11,
-        2,12,2,26,3,2,29,8,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,4,
-        1,5,1,5,1,5,0,0,6,0,2,4,6,8,10,0,1,1,0,4,6,41,0,12,1,0,0,0,2,18,
-        1,0,0,0,4,28,1,0,0,0,6,30,1,0,0,0,8,37,1,0,0,0,10,41,1,0,0,0,12,
-        13,3,2,1,0,13,14,5,0,0,1,14,1,1,0,0,0,15,17,3,4,2,0,16,15,1,0,0,
-        0,17,20,1,0,0,0,18,16,1,0,0,0,18,19,1,0,0,0,19,3,1,0,0,0,20,18,1,
-        0,0,0,21,29,3,6,3,0,22,29,3,8,4,0,23,25,5,11,0,0,24,23,1,0,0,0,25,
-        26,1,0,0,0,26,24,1,0,0,0,26,27,1,0,0,0,27,29,1,0,0,0,28,21,1,0,0,
-        0,28,22,1,0,0,0,28,24,1,0,0,0,29,5,1,0,0,0,30,31,5,3,0,0,31,32,3,
-        10,5,0,32,33,5,8,0,0,33,34,5,1,0,0,34,35,5,9,0,0,35,36,5,2,0,0,36,
-        7,1,0,0,0,37,38,5,7,0,0,38,39,5,8,0,0,39,40,5,2,0,0,40,9,1,0,0,0,
-        41,42,7,0,0,0,42,11,1,0,0,0,3,18,26,28
+        4,1,11,47,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        6,1,0,1,0,1,0,1,1,5,1,19,8,1,10,1,12,1,22,9,1,1,2,1,2,1,2,3,2,27,
+        8,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,4,1,5,1,5,1,6,4,6,
+        43,8,6,11,6,12,6,44,1,6,0,0,7,0,2,4,6,8,10,12,0,1,1,0,2,4,43,0,14,
+        1,0,0,0,2,20,1,0,0,0,4,26,1,0,0,0,6,28,1,0,0,0,8,35,1,0,0,0,10,39,
+        1,0,0,0,12,42,1,0,0,0,14,15,3,2,1,0,15,16,5,0,0,1,16,1,1,0,0,0,17,
+        19,3,4,2,0,18,17,1,0,0,0,19,22,1,0,0,0,20,18,1,0,0,0,20,21,1,0,0,
+        0,21,3,1,0,0,0,22,20,1,0,0,0,23,27,3,6,3,0,24,27,3,8,4,0,25,27,3,
+        12,6,0,26,23,1,0,0,0,26,24,1,0,0,0,26,25,1,0,0,0,27,5,1,0,0,0,28,
+        29,5,1,0,0,29,30,3,10,5,0,30,31,5,8,0,0,31,32,5,6,0,0,32,33,5,9,
+        0,0,33,34,5,7,0,0,34,7,1,0,0,0,35,36,5,5,0,0,36,37,5,8,0,0,37,38,
+        5,7,0,0,38,9,1,0,0,0,39,40,7,0,0,0,40,11,1,0,0,0,41,43,5,11,0,0,
+        42,41,1,0,0,0,43,44,1,0,0,0,44,42,1,0,0,0,44,45,1,0,0,0,45,13,1,
+        0,0,0,3,20,26,44
     ]
 
 class LenguajeParser ( Parser ):
@@ -35,12 +36,12 @@ class LenguajeParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'='", "';'", "'variabli'", "'ontie'", 
-                     "'flote'", "'duble'", "'amprimi'" ]
+    literalNames = [ "<INVALID>", "'variabli'", "'ontie'", "'flote'", "'duble'", 
+                     "'amprimi'", "'='", "';'" ]
 
-    symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "VARIABLI", 
-                      "ONTIE", "FLOTE", "DUBLE", "AMPRIMI", "ID", "INT", 
-                      "WS", "ERROR_CHAR" ]
+    symbolicNames = [ "<INVALID>", "VARIABLI", "ONTIE", "FLOTE", "DUBLE", 
+                      "AMPRIMI", "IGUAL", "PUNTOCOMA", "ID", "INT", "WS", 
+                      "ERROR_CHAR" ]
 
     RULE_programa = 0
     RULE_instrucciones = 1
@@ -48,18 +49,19 @@ class LenguajeParser ( Parser ):
     RULE_declaracion = 3
     RULE_impresion = 4
     RULE_tipo = 5
+    RULE_errorInstr = 6
 
     ruleNames =  [ "programa", "instrucciones", "instruccion", "declaracion", 
-                   "impresion", "tipo" ]
+                   "impresion", "tipo", "errorInstr" ]
 
     EOF = Token.EOF
-    T__0=1
-    T__1=2
-    VARIABLI=3
-    ONTIE=4
-    FLOTE=5
-    DUBLE=6
-    AMPRIMI=7
+    VARIABLI=1
+    ONTIE=2
+    FLOTE=3
+    DUBLE=4
+    AMPRIMI=5
+    IGUAL=6
+    PUNTOCOMA=7
     ID=8
     INT=9
     WS=10
@@ -108,9 +110,9 @@ class LenguajeParser ( Parser ):
         self.enterRule(localctx, 0, self.RULE_programa)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 12
+            self.state = 14
             self.instrucciones()
-            self.state = 13
+            self.state = 15
             self.match(LenguajeParser.EOF)
         except RecognitionException as re:
             localctx.exception = re
@@ -156,13 +158,13 @@ class LenguajeParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 18
+            self.state = 20
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 2184) != 0):
-                self.state = 15
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 2082) != 0):
+                self.state = 17
                 self.instruccion()
-                self.state = 20
+                self.state = 22
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -190,11 +192,9 @@ class LenguajeParser ( Parser ):
             return self.getTypedRuleContext(LenguajeParser.ImpresionContext,0)
 
 
-        def ERROR_CHAR(self, i:int=None):
-            if i is None:
-                return self.getTokens(LenguajeParser.ERROR_CHAR)
-            else:
-                return self.getToken(LenguajeParser.ERROR_CHAR, i)
+        def errorInstr(self):
+            return self.getTypedRuleContext(LenguajeParser.ErrorInstrContext,0)
+
 
         def getRuleIndex(self):
             return LenguajeParser.RULE_instruccion
@@ -215,35 +215,23 @@ class LenguajeParser ( Parser ):
         localctx = LenguajeParser.InstruccionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 4, self.RULE_instruccion)
         try:
-            self.state = 28
+            self.state = 26
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [3]:
+            if token in [1]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 21
+                self.state = 23
                 self.declaracion()
                 pass
-            elif token in [7]:
+            elif token in [5]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 22
+                self.state = 24
                 self.impresion()
                 pass
             elif token in [11]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 24 
-                self._errHandler.sync(self)
-                _alt = 1
-                while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
-                    if _alt == 1:
-                        self.state = 23
-                        self.match(LenguajeParser.ERROR_CHAR)
-
-                    else:
-                        raise NoViableAltException(self)
-                    self.state = 26 
-                    self._errHandler.sync(self)
-                    _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
-
+                self.state = 25
+                self.errorInstr()
                 pass
             else:
                 raise NoViableAltException(self)
@@ -274,8 +262,14 @@ class LenguajeParser ( Parser ):
         def ID(self):
             return self.getToken(LenguajeParser.ID, 0)
 
+        def IGUAL(self):
+            return self.getToken(LenguajeParser.IGUAL, 0)
+
         def INT(self):
             return self.getToken(LenguajeParser.INT, 0)
+
+        def PUNTOCOMA(self):
+            return self.getToken(LenguajeParser.PUNTOCOMA, 0)
 
         def getRuleIndex(self):
             return LenguajeParser.RULE_declaracion
@@ -297,18 +291,18 @@ class LenguajeParser ( Parser ):
         self.enterRule(localctx, 6, self.RULE_declaracion)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 30
+            self.state = 28
             self.match(LenguajeParser.VARIABLI)
-            self.state = 31
+            self.state = 29
             self.tipo()
-            self.state = 32
+            self.state = 30
             self.match(LenguajeParser.ID)
-            self.state = 33
-            self.match(LenguajeParser.T__0)
-            self.state = 34
+            self.state = 31
+            self.match(LenguajeParser.IGUAL)
+            self.state = 32
             self.match(LenguajeParser.INT)
-            self.state = 35
-            self.match(LenguajeParser.T__1)
+            self.state = 33
+            self.match(LenguajeParser.PUNTOCOMA)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -331,6 +325,9 @@ class LenguajeParser ( Parser ):
         def ID(self):
             return self.getToken(LenguajeParser.ID, 0)
 
+        def PUNTOCOMA(self):
+            return self.getToken(LenguajeParser.PUNTOCOMA, 0)
+
         def getRuleIndex(self):
             return LenguajeParser.RULE_impresion
 
@@ -351,12 +348,12 @@ class LenguajeParser ( Parser ):
         self.enterRule(localctx, 8, self.RULE_impresion)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 37
+            self.state = 35
             self.match(LenguajeParser.AMPRIMI)
-            self.state = 38
+            self.state = 36
             self.match(LenguajeParser.ID)
-            self.state = 39
-            self.match(LenguajeParser.T__1)
+            self.state = 37
+            self.match(LenguajeParser.PUNTOCOMA)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -403,13 +400,69 @@ class LenguajeParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 41
+            self.state = 39
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 112) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 28) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
                 self.consume()
+        except RecognitionException as re:
+            localctx.exception = re
+            self._errHandler.reportError(self, re)
+            self._errHandler.recover(self, re)
+        finally:
+            self.exitRule()
+        return localctx
+
+
+    class ErrorInstrContext(ParserRuleContext):
+        __slots__ = 'parser'
+
+        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+            super().__init__(parent, invokingState)
+            self.parser = parser
+
+        def ERROR_CHAR(self, i:int=None):
+            if i is None:
+                return self.getTokens(LenguajeParser.ERROR_CHAR)
+            else:
+                return self.getToken(LenguajeParser.ERROR_CHAR, i)
+
+        def getRuleIndex(self):
+            return LenguajeParser.RULE_errorInstr
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterErrorInstr" ):
+                listener.enterErrorInstr(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitErrorInstr" ):
+                listener.exitErrorInstr(self)
+
+
+
+
+    def errorInstr(self):
+
+        localctx = LenguajeParser.ErrorInstrContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 12, self.RULE_errorInstr)
+        try:
+            self.enterOuterAlt(localctx, 1)
+            self.state = 42 
+            self._errHandler.sync(self)
+            _alt = 1
+            while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
+                if _alt == 1:
+                    self.state = 41
+                    self.match(LenguajeParser.ERROR_CHAR)
+
+                else:
+                    raise NoViableAltException(self)
+                self.state = 44 
+                self._errHandler.sync(self)
+                _alt = self._interp.adaptivePredict(self._input,2,self._ctx)
+
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)

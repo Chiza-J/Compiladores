@@ -8,30 +8,37 @@ instrucciones : (instruccion)*;
 instruccion
     : declaracion
     | impresion
-    | ERROR_CHAR+   // manejo de errores
+    | errorInstr
     ;
 
-declaracion : VARIABLI tipo ID '=' INT ';';
+declaracion : VARIABLI tipo ID IGUAL INT PUNTOCOMA;
 
-impresion : AMPRIMI ID ';';
+impresion : AMPRIMI ID PUNTOCOMA;
 
 tipo : ONTIE | FLOTE | DUBLE;
 
+// Manejo de error
+errorInstr : ERROR_CHAR+;
+
 // ===== LEXER =====
 
-// Palabras reservadas (TU abecedario)
+// PALABRAS RESERVADAS (PRIMERO)
 VARIABLI : 'variabli';
 ONTIE    : 'ontie';
 FLOTE    : 'flote';
 DUBLE    : 'duble';
 AMPRIMI  : 'amprimi';
 
-// Tokens básicos
+// SÍMBOLOS (IMPORTANTE)
+IGUAL      : '=';
+PUNTOCOMA  : ';';
+
+// TOKENS
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
 INT : [0-9]+;
 
-// Ignorar espacios
+// IGNORAR ESPACIOS
 WS : [ \t\r\n]+ -> skip;
 
-// Error léxico
+// ERROR (SIEMPRE AL FINAL)
 ERROR_CHAR : . ;
