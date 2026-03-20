@@ -1,0 +1,42 @@
+if -> wi 
+else -> otre 
+elseif-> otrewi 
+switch -> shangshe
+case -> ca 
+default -> difu
+while -> pendan
+do -> fer
+for -> pur
+break -> pos
+continue -> contine
+return -> retur
+
+int - ontie
+float - flote 
+double - duble 
+char - caracter
+string - shen
+boolean - bulian 
+void - vid
+
+const - constant 
+var - variabli
+function - funcsion
+procedure - procediur
+main - principal 
+class - categori 
+struct- estructure
+
+print - amprimi
+println - amprimilin
+input - sisir
+read - lir 
+write - icrir
+true - vre 
+false - fo 
+null- niul 
+
+try - eseye 
+catch - capture
+finally- enfan 
+throw - lance
