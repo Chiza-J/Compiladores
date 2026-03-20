@@ -1,15 +1,12 @@
 import sys
 import os
 
-# Ruta para encontrar el lexer en la carpeta padre
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(ruta_raiz)
 
 from antlr4 import *
 from LenguajeLexer import LenguajeLexer
 
-
-# 🔁 FUNCIÓN RECURSIVA
 def procesar_tokens_recursivo(lexer, token, lista):
     if token.type == Token.EOF:
         return
@@ -40,7 +37,7 @@ def main():
     primer_token = lexer.nextToken()
     procesar_tokens_recursivo(lexer, primer_token, tokens_lista)
 
-    # Generar HTML
+  
     html = """
     <html>
     <head><title>Reporte de Tokens</title></head>
@@ -65,7 +62,7 @@ def main():
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print("Reporte de tokens generado ✔")
+    print("Reporte de tokens generado ")
 
 
 if __name__ == "__main__":
