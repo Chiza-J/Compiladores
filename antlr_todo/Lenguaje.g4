@@ -1,6 +1,7 @@
 grammar Lenguaje;
 
-// ===== PARSER =====
+//     PARSER
+// Programa base que genera toda la lista de instrucciones 
 programa : instrucciones EOF;
 
 instrucciones : (instruccion)*;
@@ -23,11 +24,11 @@ errorInstr : ERROR_CHAR+;
 // ===== LEXER =====
 
 // PALABRAS RESERVADAS (PRIMERO)
-VARIABLI : 'variabli';
-ONTIE    : 'ontie';
-FLOTE    : 'flote';
-DUBLE    : 'duble';
-AMPRIMI  : 'amprimi';
+VARIABLI : 'variabli'; // variables
+ONTIE    : 'ontie'; // enteros
+FLOTE    : 'flote'; //flotantes
+DUBLE    : 'duble'; //decimales
+AMPRIMI  : 'amprimi'; //print
 
 // SÍMBOLOS (IMPORTANTE)
 IGUAL      : '=';
