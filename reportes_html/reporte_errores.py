@@ -64,7 +64,7 @@ def main():
     <tr><th>Línea</th><th>Columna</th><th>Mensaje</th></tr>
     """
 
-    # 🔁 Aplicar recursividad aquí
+    # se aplica recursividad
     html = procesar_errores_recursivo(listener.errores, 0, html)
 
     html += "</table></body></html>"
