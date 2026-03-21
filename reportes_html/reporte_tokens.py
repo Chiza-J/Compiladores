@@ -1,5 +1,6 @@
 import sys
 import os
+import difflib
 
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(ruta_raiz)
@@ -9,7 +10,22 @@ from LenguajeLexer import LenguajeLexer
 from LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
-# detector de los errores 
+VOCABULARIO = [
+    "variabli",
+    "ontie",
+    "flote",
+    "duble",
+    "amprimi"
+]
+
+
+# SUGERENCIAS PARA EL VOCABULARIO
+def sugerir_palabra(lexema):
+    sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.6)
+    return sugerencias[0] if sugerencias else ""
+
+
+# ERROR SINTÁCTICO 
 class MiErrorListener(ErrorListener):
     def __init__(self):
         self.hay_error = False
@@ -18,22 +34,24 @@ class MiErrorListener(ErrorListener):
         self.hay_error = True
 
 
-# se aplica recursividad
+# RECURSIVIDAD
 def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
     if token.type == Token.EOF:
         return
 
     tipo = lexer.symbolicNames[token.type]
 
-    # detecta error léxico
+    # ERROR LÉXICO + SUGERENCIA
     if tipo == "ERROR_CHAR":
+        sugerencia = sugerir_palabra(token.text)
+
         errores_lexicos.append({
             "linea": token.line,
             "columna": token.column,
-            "lexema": token.text
+            "lexema": token.text,
+            "sugerencia": sugerencia
         })
 
-    # ignora los espacios
     elif tipo != "WS":
         lista.append({
             "tipo": tipo,
@@ -58,7 +76,6 @@ def main():
     primer_token = lexer.nextToken()
     procesar_tokens_recursivo(lexer, primer_token, tokens_lista, errores_lexicos)
 
-  # errores sintacticos
     input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
@@ -70,13 +87,21 @@ def main():
 
     parser.programa()
 
-    # validacion de errores
+    # ERROR LÉXICO
     if errores_lexicos:
-        print("Error Léxico detectado")
+        print("❌ Error LÉXICO detectado\n")
+
+        for e in errores_lexicos:
+            if e["sugerencia"]:
+                print(f"Línea {e['linea']}: '{e['lexema']}' → ¿Quiso decir '{e['sugerencia']}'?")
+            else:
+                print(f"Línea {e['linea']}: símbolo no reconocido '{e['lexema']}'")
+
         return
 
+    # ERROR SINTÁCTICO
     if listener.hay_error:
-        print("Error Sintáctico detectado")
+        print("❌ Error SINTÁCTICO detectado")
         return
 
     html = """
