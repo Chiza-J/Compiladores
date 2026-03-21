@@ -89,7 +89,7 @@ def main():
 
     # ERROR LÉXICO
     if errores_lexicos:
-        print("❌ Error LÉXICO detectado\n")
+        print("Error LÉXICO detectado\n")
 
         for e in errores_lexicos:
             if e["sugerencia"]:
@@ -101,7 +101,7 @@ def main():
 
     # ERROR SINTÁCTICO
     if listener.hay_error:
-        print("❌ Error SINTÁCTICO detectado")
+        print("Error SINTÁCTICO detectado")
         return
 
     html = """
