@@ -2,17 +2,37 @@ grammar Lenguaje;
 
 //     PARSER
 // Programa base que genera toda la lista de instrucciones 
-programa : instrucciones EOF;
+programa 
+    : PRINCIPAL PARENTESIS_ABIERTO PARENTESIS_CERRADO bloque EOF
+    ;
 
-instrucciones : (instruccion)*;
+//  Bloque {....}
+bloque
+    : LLAVE_ABIERTA instrucciones LLAVE_CERRADA
+    ;
 
+// Lista de instrucciones
+instrucciones 
+    : (instruccion)*
+    ;
+
+//  Tipos de instrucciones
 instruccion
     : declaracion
+    | asignacion
     | impresion
+    | condicion_if
+    | ciclo_while
+    | retorno
     | errorInstr
     ;
 
-declaracion : VARIABLI tipo ID IGUAL INT PUNTOCOMA;
+
+//  Declaracion de variables 
+//  int x = 10;
+declaracion 
+    : VARIABLI tipo ID IGUAL INT PUNTOCOMA
+    ;
 
 impresion : AMPRIMI ID PUNTOCOMA;
 
