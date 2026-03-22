@@ -38,6 +38,10 @@ AMPRIMI  : 'amprimi'; //print
 // SÍMBOLOS (IMPORTANTE)
 IGUAL      : '=';
 PUNTOCOMA  : ';';
+PARENTESIS_ABIERTO : '(';
+PARENTESIS_CERRADO : ')';
+LLAVE_ABIERTA : '{';
+LLAVE_CERRADA : '}';
 
 // TOKENS
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
