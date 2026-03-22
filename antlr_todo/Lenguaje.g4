@@ -28,11 +28,24 @@ errorInstr : ERROR_CHAR+;
 // marcar inicio del programa
 PRINCIPAL : 'principal';
 
+//  if
+WI : 'wi';
 
-VARIABLI : 'variabli'; // variables
+//  else
+OTRE : 'otre';
+
+//  while
+PENDAN : 'pendan';
+
+//  return
+RETUR : 'retur';
+
+//          Tipos
 ONTIE    : 'ontie'; // enteros
 FLOTE    : 'flote'; //flotantes
 DUBLE    : 'duble'; //decimales
+
+//      Funiones
 AMPRIMI  : 'amprimi'; //print
 
 // SÍMBOLOS (IMPORTANTE)
@@ -49,6 +62,8 @@ OP : '+' | '-' | '*' | '/' | '<' | '>' | '==' ;
 
 //  Identificadores
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
+
+//  Numeros
 INT : [0-9]+;
 
 // IGNORAR ESPACIOS
