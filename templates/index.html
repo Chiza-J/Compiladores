@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>COMPILADOR</title>
+
+<style>
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    font-family: Arial;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background: #111827;
+    color: white;
+    padding: 15px;
+}
+
+button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.tokens { background: #2ecc71; }
+.errores { background: #e74c3c; }
+.recuperables { background: #f39c12; }
+.analizar { background: #3498db; }
+
+/* Main */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor {
+    height: 40%;
+}
+
+textarea {
+    width: 100%;
+    height: 100%;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.consola {
+    height: 20%;
+    background: black;
+    color: lime;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.visor {
+    flex: 1;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h3>Compilador</h3>
+
+    <button class="analizar" onclick="analizar()">▶ Analizar</button>
+
+    <hr>
+
+    <button class="tokens" onclick="cargar('reportes_html/reporte_tokens.html')">Tokens</button>
+    <button class="errores" onclick="cargar('reportes_html/reporte_errores.html')">Errores</button>
+    <button class="recuperables" onclick="cargar('reportes_html/reporte_recuperables.html')">Recuperables</button>
+</div>
+
+<div class="main">
+
+    <div class="editor">
+        <textarea id="codigo">// Escribe tu código aquí</textarea>
+    </div>
+
+    <div class="consola" id="consola">
+        Consola...
+    </div>
+
+    <div class="visor" id="visor">
+        <iframe></iframe>
+    </div>
+
+</div>
+
+<script>
+function analizar() {
+    const codigo = document.getElementById("codigo").value;
+
+    fetch('/analizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("consola").innerText = data.salida;
+    });
+}
+
+function cargar(ruta) {
+    document.querySelector("iframe").src = ruta;
+}
+</script>
+
+</body>
+</html>
