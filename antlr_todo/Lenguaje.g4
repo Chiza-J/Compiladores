@@ -46,6 +46,22 @@ impresion
 
 //  if
 // if (cond) {} else {}
+condicion_if
+    : WI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque 
+     (OTRE bloque)?
+    ;
+
+//  while 
+//  while (cond) { }
+ciclo_while
+    : PENDAN PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque
+    ;
+
+// return
+// return x;
+retorno
+    : RETUR expr? PUNTOCOMA
+    ;
 
 
 // Expresiones básicas
@@ -55,11 +71,10 @@ expr
     | ID
     ;
 
-impresion : AMPRIMI ID PUNTOCOMA;
 
 tipo : ONTIE | FLOTE | DUBLE;
 
-// Manejo de error
+// Manejo de error sintactico
 errorInstr : ERROR_CHAR+;
 
 //       LEXER 
