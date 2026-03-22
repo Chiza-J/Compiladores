@@ -44,6 +44,10 @@ LLAVE_ABIERTA : '{';
 LLAVE_CERRADA : '}';
 
 // TOKENS
+//  Operadores
+OP : '+' | '-' | '*' | '/' | '<' | '>' | '==' ;
+
+//  Identificadores
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
 INT : [0-9]+;
 
