@@ -21,9 +21,14 @@ tipo : ONTIE | FLOTE | DUBLE;
 // Manejo de error
 errorInstr : ERROR_CHAR+;
 
-// ===== LEXER =====
+//       LEXER 
 
 // PALABRAS RESERVADAS (PRIMERO)
+
+// marcar inicio del programa
+PRINCIPAL : 'principal';
+
+
 VARIABLI : 'variabli'; // variables
 ONTIE    : 'ontie'; // enteros
 FLOTE    : 'flote'; //flotantes
