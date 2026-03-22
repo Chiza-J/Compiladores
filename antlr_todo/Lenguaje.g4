@@ -31,7 +31,28 @@ instruccion
 //  Declaracion de variables 
 //  int x = 10;
 declaracion 
-    : VARIABLI tipo ID IGUAL INT PUNTOCOMA
+    : tipo ID IGUAL expr PUNTOCOMA
+    ;
+
+//  Asignacion x = 5;
+asignacion
+    : ID IGUAL expr PUNTOCOMA
+    ;
+
+//  Print y en C es printf(x);
+impresion
+    : AMPRIMI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO PUNTOCOMA
+    ;
+
+//  if
+// if (cond) {} else {}
+
+
+// Expresiones básicas
+expr
+    : expr OP expr
+    | INT
+    | ID
     ;
 
 impresion : AMPRIMI ID PUNTOCOMA;
