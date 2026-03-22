@@ -2,7 +2,7 @@ import sys
 import os
 
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(ruta_raiz)
+sys.path.insert(0, ruta_raiz)
 
 from antlr4 import *
 from antlr_todo.LenguajeLexer import LenguajeLexer
