@@ -1,6 +1,6 @@
 from antlr4 import *
-from LenguajeLexer import LenguajeLexer
-from LenguajeParser import LenguajeParser
+from  antlr_todo.LenguajeLexer import LenguajeLexer
+from antlr_todo.LenguajeParser import LenguajeParser
 
 def main():
     # Leer archivo
