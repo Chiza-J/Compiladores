@@ -6,10 +6,12 @@ ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(ruta_raiz)
 
 from antlr4 import *
-from LenguajeLexer import LenguajeLexer
-from LenguajeParser import LenguajeParser
+from antlr_todo.LenguajeLexer import LenguajeLexer
+from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
+
+# VOCABULARIO 
 VOCABULARIO = [
     "variabli",
     "ontie",
@@ -19,7 +21,7 @@ VOCABULARIO = [
 ]
 
 
-# SUGERENCIAS PARA EL VOCABULARIO
+# SUGERENCIAS PARA VOCABULARIO
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.6)
     return sugerencias[0] if sugerencias else ""
@@ -34,7 +36,6 @@ class MiErrorListener(ErrorListener):
         self.hay_error = True
 
 
-# RECURSIVIDAD
 def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
     if token.type == Token.EOF:
         return
@@ -87,9 +88,10 @@ def main():
 
     parser.programa()
 
+
     # ERROR LÉXICO
     if errores_lexicos:
-        print("Error LÉXICO detectado\n")
+        print("Error léxico detectado\n")
 
         for e in errores_lexicos:
             if e["sugerencia"]:
@@ -101,8 +103,9 @@ def main():
 
     # ERROR SINTÁCTICO
     if listener.hay_error:
-        print("Error SINTÁCTICO detectado")
+        print("Error sintáctico detectado")
         return
+
 
     html = """
     <html>

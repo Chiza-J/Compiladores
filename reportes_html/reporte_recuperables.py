@@ -5,7 +5,7 @@ ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(ruta_raiz)
 
 from antlr4 import *
-from LenguajeLexer import LenguajeLexer
+from antlr_todo.LenguajeLexer import LenguajeLexer
 
 
 def procesar_recuperables_recursivo(lexer, token, errores):
