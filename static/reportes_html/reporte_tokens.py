@@ -2,7 +2,7 @@ import sys
 import os
 import difflib
 
-ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(ruta_raiz)
 
 from antlr4 import *

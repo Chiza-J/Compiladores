@@ -25,17 +25,17 @@ def analizar():
     try:
         # Ejecutar tus scripts
         resultado1 = subprocess.run(
-            ['python', 'reportes_html/reporte_tokens.py'],
+            ['python', 'static/reportes_html/reporte_tokens.py'],
             capture_output=True, text=True
         )
 
         resultado2 = subprocess.run(
-            ['python', 'reportes_html/reporte_errores.py'],
+            ['python', 'static/reportes_html/reporte_errores.py'],
             capture_output=True, text=True
         )
 
         resultado3 = subprocess.run(
-            ['python', 'reportes_html/reporte_recuperables.py'],
+            ['python', 'static/reportes_html/reporte_recuperables.py'],
             capture_output=True, text=True
         )
 
