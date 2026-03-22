@@ -1,1 +1,1 @@
-python reportes_html/reporte_tokens.py
+python static/reportes_html/reporte_tokens.py
