@@ -1,5 +1,4 @@
 principal() {
     ontie x = 10;
-    @@@
     retur x;
 }
