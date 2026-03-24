@@ -1,6 +1,8 @@
 principal() {
-    ontie x = 10;
+    ontie x = 10
     amprimi(x);
-@
-%
+    @
+$
+
+
 }

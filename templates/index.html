@@ -47,11 +47,13 @@ button:hover {
     opacity: 0.9;
 }
 
+
 .tokens { background: #22c55e; }
 .errores { background: #ef4444; }
 .recuperables { background: #f59e0b; }
 .analizar { background: #3b82f6; }
 .limpiar { background: #64748b; }
+.descargar { background: #8b5cf6; }
 
 
 .main {
@@ -78,6 +80,7 @@ textarea {
     font-size: 14px;
     outline: none;
 }
+
 
 .consola {
     height: 30%;
@@ -112,6 +115,7 @@ iframe {
 
     <button class="analizar" onclick="analizar()">▶ Analizar</button>
     <button class="limpiar" onclick="confirmarLimpiar()">🧹 Limpiar</button>
+    <button class="descargar" onclick="descargar()">💾 Descargar</button>
 
     <hr style="margin: 15px 0; border: 1px solid #1e293b;">
 
@@ -140,7 +144,6 @@ iframe {
 const textarea = document.getElementById("codigo");
 const placeholder = "Escribe tu código aquí...";
 
-
 textarea.addEventListener("focus", () => {
     if (textarea.value === placeholder) {
         textarea.value = "";
@@ -155,7 +158,7 @@ textarea.addEventListener("blur", () => {
     }
 });
 
-// ANALIZA LOS ERRORES
+
 function analizar() {
     const codigo = textarea.value;
 
@@ -172,28 +175,28 @@ function analizar() {
     });
 }
 
-// CARGA LOS 3 REPORTES
+/* CARGA LOS REPORTES */
 function cargar(ruta) {
     document.getElementById("frame").src = ruta;
 }
 
 function confirmarLimpiar() {
     const confirmacion = confirm("¿Seguro que quieres limpiar todo el entorno?");
-
-    if (confirmacion) {
-        limpiar();
-    }
+    if (confirmacion) limpiar();
 }
 
-// ACA LIMPIA EL EDITOR, LA CONSOLA Y LOS REPORTES
 function limpiar() {
-    
     textarea.value = placeholder;
     textarea.style.color = "#64748b";
 
     document.getElementById("consola").innerText = "> Entorno reiniciado...\n";
 
     document.getElementById("frame").src = "";
+}
+
+/* DESCARGAR TODO */
+function descargar() {
+    window.open('/descargar');
 }
 </script>
 
