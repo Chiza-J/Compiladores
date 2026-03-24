@@ -81,9 +81,9 @@ iframe {
 
     <hr>
 
-    <button class="tokens" onclick="cargar('reportes_html/reporte_tokens.html')">Tokens</button>
-    <button class="errores" onclick="cargar('reportes_html/reporte_errores.html')">Errores</button>
-    <button class="recuperables" onclick="cargar('reportes_html/reporte_recuperables.html')">Recuperables</button>
+    <button class="tokens" onclick="cargar('/tokens')">Tokens</button>
+    <button class="errores" onclick="cargar('/errores')">Errores</button>
+    <button class="recuperables" onclick="cargar('/recuperables')">Recuperables</button>
 </div>
 
 <div class="main">
@@ -96,8 +96,8 @@ iframe {
         Consola...
     </div>
 
-    <div class="visor" id="visor">
-        <iframe></iframe>
+    <div class="visor">
+        <iframe id="frame"></iframe>
     </div>
 
 </div>
@@ -118,7 +118,7 @@ function analizar() {
 }
 
 function cargar(ruta) {
-    document.querySelector("iframe").src = ruta;
+    document.getElementById("frame").src = ruta;
 }
 </script>
 

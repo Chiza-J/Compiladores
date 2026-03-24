@@ -1,17 +1,5 @@
 principal() {
-
     ontie x = 10;
-    ontie y = 20;
-
-    wi (x < y) {
-        amprimi(x);
-    } otre {
-        amprimi(y);
-    }
-
-    pendan (x < 15) {
-        x = x + 1;
-    }
-
+    @@@
     retur x;
 }
