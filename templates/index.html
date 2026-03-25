@@ -111,17 +111,19 @@ iframe {
 <body>
 
 <div class="sidebar">
-    <h2>⚙ Compilador</h2>
+    <h2>COMPILADOR</h2>
 
-    <button class="analizar" onclick="analizar()">▶ Analizar</button>
-    <button class="limpiar" onclick="confirmarLimpiar()">🧹 Limpiar</button>
-    <button class="descargar" onclick="descargar()">💾 Descargar</button>
+    <button class="analizar" onclick="analizar()">Analizar</button>
+    <button class="limpiar" onclick="confirmarLimpiar()">Limpiar</button>
+    <button class="descargar" onclick="descargar()">Descargar</button>
+    <button class="descargar" onclick="document.getElementById('fileInput').click()">Cargar Archivo</button>
+    <input type="file" id="fileInput" accept=".leng" style="display:none" onchange="cargarArchivo(event)">
 
     <hr style="margin: 15px 0; border: 1px solid #1e293b;">
 
-    <button class="tokens" onclick="cargar('/tokens')">📄 Tokens</button>
-    <button class="errores" onclick="cargar('/errores')">❌ Errores</button>
-    <button class="recuperables" onclick="cargar('/recuperables')">⚠ Recuperables</button>
+    <button class="tokens" onclick="cargar('/tokens')">Tokens</button>
+    <button class="errores" onclick="cargar('/errores')">Errores</button>
+    <button class="recuperables" onclick="cargar('/recuperables')">Recuperables</button>
 </div>
 
 <div class="main">
@@ -192,6 +194,26 @@ function limpiar() {
     document.getElementById("consola").innerText = "> Entorno reiniciado...\n";
 
     document.getElementById("frame").src = "";
+}
+
+function cargarArchivo(event) {
+    const archivo = event.target.files[0];
+
+    if (!archivo) return;
+
+    if (!archivo.name.endsWith(".leng")) {
+        alert("Solo se permiten archivos .leng");
+        return;
+    }
+
+    const lector = new FileReader();
+
+    lector.onload = function(e) {
+        textarea.value = e.target.result;
+        textarea.style.color = "#e2e8f0";
+    };
+
+    lector.readAsText(archivo);
 }
 
 /* DESCARGAR TODO */
