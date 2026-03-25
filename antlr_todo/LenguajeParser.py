@@ -76,7 +76,8 @@ class LenguajeParser ( Parser ):
 
     literalNames = [ "<INVALID>", "'principal'", "'wi'", "'otre'", "'pendan'", 
                      "'retur'", "'ontie'", "'flote'", "'duble'", "'amprimi'", 
-                     "'='", "';'", "'('", "')'", "'{'", "'}'" ]
+                     "'iyal'", "'puavir'", "'pasuvert'", "'pasferme'", "'cleuvert'", 
+                     "'cleferme'" ]
 
     symbolicNames = [ "<INVALID>", "PRINCIPAL", "WI", "OTRE", "PENDAN", 
                       "RETUR", "ONTIE", "FLOTE", "DUBLE", "AMPRIMI", "IGUAL", 
