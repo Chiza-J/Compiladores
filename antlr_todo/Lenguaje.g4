@@ -124,17 +124,17 @@ DUBLE    : 'duble'; //decimales
 AMPRIMI  : 'amprimi'; //print
 
 // SÍMBOLOS (IMPORTANTE)
-IGUAL      : '=';
-PUNTOCOMA  : ';';
-PARENTESIS_ABIERTO : '(';
-PARENTESIS_CERRADO : ')';
-LLAVE_ABIERTA : '{';
-LLAVE_CERRADA : '}';
+IGUAL      : 'iyal';
+PUNTOCOMA  : 'puavir';
+PARENTESIS_ABIERTO : 'pasuvert';
+PARENTESIS_CERRADO : 'pasferme';
+LLAVE_ABIERTA : 'cleuvert';
+LLAVE_CERRADA : 'cleferme';
 
 // TOKENS
 //  Operadores
-OP : '+' | '-' | '*' | '/' | '<' | '>' | '==' ;
-
+OP : 'plu' | 'moan' | 'par' | 'bag' | 'minog' | 'aye' | 'compag' ;
+//      +     -        *       /       <         >       ==   
 //  Identificadores
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
 
@@ -149,10 +149,10 @@ FLOAT_LIT : [0-9]+ '.' [0-9]+;
 WS : [ \t\r\n]+ -> skip;
 
 //Comentario de bloque
-COMMENT: '/*' .*? '*/' -> channel(HIDDEN) ;
+COMMENT: 'lementer' .*? 'blomenter' -> channel(HIDDEN) ;
 
 //Comentario de linea
-LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN) ;
+LINE_COMMENT: 'comenter' ~[\r\n]* -> channel(HIDDEN) ;
 
 // ERROR (SIEMPRE AL FINAL)
 ERROR_CHAR : . ;
