@@ -1,8 +1,3 @@
-principal() {
-    ontie x = 10
-    amprimi(x);
-    @
-$
-
-
+principal(){
+ontie x = SF;
 }
