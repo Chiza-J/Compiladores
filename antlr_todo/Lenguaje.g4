@@ -30,8 +30,11 @@ instruccion
 
 //  Declaracion de variables 
 //  int x = 10;
+//  cada tipo usa su propia expresión para validar que el valor corresponde al tipo declarado
 declaracion 
-    : tipo ID IGUAL expr PUNTOCOMA
+    : ONTIE ID IGUAL expr_entera PUNTOCOMA   // ontie solo acepta enteros
+    | FLOTE ID IGUAL expr_decimal PUNTOCOMA  // flote acepta enteros o decimales
+    | DUBLE ID IGUAL expr_decimal PUNTOCOMA  // duble acepta enteros o decimales
     ;
 
 //  Asignacion x = 5;
@@ -66,17 +69,28 @@ retorno
 
 // Expresiones básicas
 expr
-    : expr OP expr
+    : <assoc=left> expr OP expr
+    | INT
+    | FLOAT_LIT
+    | ID
+    ;
+
+// No permite FLOAT_LIT — si se intenta asignar un decimal a ontie, será un error sintáctico
+expr_entera
+    : <assoc=left> expr_entera OP expr_entera
     | INT
     | ID
     ;
 
-//Comentario de bloque
-COMMENT: '/*' .*? '*/' -> channel(HIDDEN) ;
+// Permite tanto INT como FLOAT_LIT
+expr_decimal
+    : <assoc=left> expr_decimal OP expr_decimal
+    | FLOAT_LIT
+    | INT
+    | ID
+    ;
 
-//Comentario de linea
-LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN) ;
-
+// Tipos de datos del lenguaje
 tipo : ONTIE | FLOTE | DUBLE;
 
 // Manejo de error sintactico
@@ -124,11 +138,21 @@ OP : '+' | '-' | '*' | '/' | '<' | '>' | '==' ;
 //  Identificadores
 ID  : [a-zA-Z_][a-zA-Z_0-9]*;
 
-//  Numeros
+//  Numeros enteros
 INT : [0-9]+;
+
+// token para números decimales/flotantes (ej: 3.14, 0.5, 2.0)
+// Se define ANTES de INT para que ANTLR lo reconozca con mayor prioridad cuando hay punto decimal
+FLOAT_LIT : [0-9]+ '.' [0-9]+;
 
 // IGNORAR ESPACIOS
 WS : [ \t\r\n]+ -> skip;
+
+//Comentario de bloque
+COMMENT: '/*' .*? '*/' -> channel(HIDDEN) ;
+
+//Comentario de linea
+LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN) ;
 
 // ERROR (SIEMPRE AL FINAL)
 ERROR_CHAR : . ;

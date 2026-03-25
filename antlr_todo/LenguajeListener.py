@@ -107,6 +107,24 @@ class LenguajeListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LenguajeParser#expr_entera.
+    def enterExpr_entera(self, ctx:LenguajeParser.Expr_enteraContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#expr_entera.
+    def exitExpr_entera(self, ctx:LenguajeParser.Expr_enteraContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#expr_decimal.
+    def enterExpr_decimal(self, ctx:LenguajeParser.Expr_decimalContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#expr_decimal.
+    def exitExpr_decimal(self, ctx:LenguajeParser.Expr_decimalContext):
+        pass
+
+
     # Enter a parse tree produced by LenguajeParser#tipo.
     def enterTipo(self, ctx:LenguajeParser.TipoContext):
         pass
