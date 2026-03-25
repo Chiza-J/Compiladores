@@ -71,6 +71,11 @@ expr
     | ID
     ;
 
+//Comentario de bloque
+COMMENT: '/*' .*? '*/' -> channel(HIDDEN) ;
+
+//Comentario de linea
+LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN) ;
 
 tipo : ONTIE | FLOTE | DUBLE;
 
