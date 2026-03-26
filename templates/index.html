@@ -457,15 +457,22 @@
         setActiveTab(tab);
       };
 
-      const confirmarLimpiar = () => {
-        if (window.confirm("¿Seguro que quieres limpiar todo el entorno?")) {
-          setCode(PLACEHOLDER);
-          setIsPlaceholder(true);
-          setConsoleText("> Entorno reiniciado...\n");
-          setFrameUrl("");
-          setActiveTab(null);
-        }
-      };
+      const confirmarLimpiar = async () => {
+  if (window.confirm("¿Seguro que quieres limpiar todo el entorno?")) {
+
+    try {
+      await fetch("/limpiar", { method: "POST" });
+    } catch (err) {
+      console.error("Error limpiando:", err);
+    }
+
+    setCode(PLACEHOLDER);
+    setIsPlaceholder(true);
+    setConsoleText("> Entorno reiniciado...\n");
+    setFrameUrl("");
+    setActiveTab(null);
+  }
+};
 
       const descargar = () => window.open("/descargar");
 

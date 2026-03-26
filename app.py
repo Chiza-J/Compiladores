@@ -79,25 +79,34 @@ def analizar():
 @app.route('/tokens')
 def ver_tokens():
     ruta = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_tokens.html')
+    base = os.path.join(RUTA_PROYECTO, 'reportes_html', 'tokens_base.html')
+
     if os.path.exists(ruta):
         return send_file(ruta)
-    return "Primero debes analizar el código"
+
+    return send_file(base)
 
 
 @app.route('/errores')
 def ver_errores():
     ruta = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html')
+    base = os.path.join(RUTA_PROYECTO, 'reportes_html', 'errores_base.html')
+
     if os.path.exists(ruta):
         return send_file(ruta)
-    return "Primero debes analizar el código"
+
+    return send_file(base)
 
 
 @app.route('/recuperables')
 def ver_recuperables():
     ruta = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html')
+    base = os.path.join(RUTA_PROYECTO, 'reportes_html', 'recuperables_base.html')
+
     if os.path.exists(ruta):
         return send_file(ruta)
-    return "Primero debes analizar el código"
+
+    return send_file(base)
 
 #FUNCION DE DESCARGA
 @app.route('/descargar')
@@ -125,6 +134,21 @@ def descargar_todo():
             zipf.write(ruta_rec, 'reportes/reporte_recuperables.html')
 
     return send_file(ruta_zip, as_attachment=True)
+
+@app.route('/limpiar', methods=['POST'])
+def limpiar():
+    rutas = [
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_tokens.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html'),
+        os.path.join(RUTA_PROYECTO, 'programa.leng')
+    ]
+
+    for ruta in rutas:
+        if os.path.exists(ruta):
+            os.remove(ruta)
+
+    return jsonify({"mensaje": "Entorno limpio"})
 
 
 if __name__ == '__main__':
