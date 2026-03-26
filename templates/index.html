@@ -10,10 +10,10 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
- 
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
     :root {
       --bg-deep:    #050810;
       --bg-panel:   #090d1a;
@@ -34,7 +34,7 @@
       --glow-red:   0 0 18px rgba(255,77,106,0.3);
       --glow-amber: 0 0 18px rgba(245,166,35,0.3);
     }
- 
+
     html, body, #root {
       height: 100%;
       background: var(--bg-deep);
@@ -42,7 +42,7 @@
       font-family: 'Syne', sans-serif;
       overflow: hidden;
     }
- 
+
     /* Subtle grid background */
     body::before {
       content: '';
@@ -55,9 +55,9 @@
       pointer-events: none;
       z-index: 0;
     }
- 
+
     #root { position: relative; z-index: 1; }
- 
+
     /* ─── LAYOUT ─── */
     .app {
       display: grid;
@@ -65,7 +65,7 @@
       grid-template-rows: 52px 1fr;
       height: 100vh;
     }
- 
+
     /* ─── TOPBAR ─── */
     .topbar {
       grid-column: 1 / -1;
@@ -119,7 +119,7 @@
     @keyframes pulse {
       0%,100% { opacity:1; } 50% { opacity:0.4; }
     }
- 
+
     /* ─── SIDEBAR ─── */
     .sidebar {
       background: var(--bg-panel);
@@ -181,19 +181,19 @@
     .btn-tokens   .btn-icon  { background: rgba(34,240,138,0.12); color: var(--accent-green); }
     .btn-errores  .btn-icon  { background: rgba(255,77,106,0.12); color: var(--accent-red); }
     .btn-recup    .btn-icon  { background: rgba(245,166,35,0.12); color: var(--accent-amber); }
- 
+
     /* Color accent on left border */
     .btn-tokens   { border-left: 2px solid var(--accent-green) !important; }
     .btn-errores  { border-left: 2px solid var(--accent-red) !important; }
     .btn-recup    { border-left: 2px solid var(--accent-amber) !important; }
- 
+
     /* ─── MAIN AREA ─── */
     .main {
       display: grid;
       grid-template-rows: 1fr 180px 200px;
       overflow: hidden;
     }
- 
+
     /* ─── EDITOR ─── */
     .editor-pane {
       position: relative;
@@ -207,7 +207,7 @@
       font-family: 'JetBrains Mono', monospace;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--text-dim);
+      color: #7a9cc8;
       margin-bottom: 6px;
       display: flex;
       align-items: center;
@@ -270,7 +270,7 @@
     }
     .code-textarea::selection { background: rgba(79,142,247,0.25); }
     .code-textarea.placeholder { color: var(--text-dim); }
- 
+
     /* ─── CONSOLE ─── */
     .console-pane {
       border-top: 1px solid var(--border);
@@ -292,7 +292,7 @@
       font-family: 'JetBrains Mono', monospace;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--text-dim);
+      color: #7a9cc8;
     }
     .console-dot { width: 7px; height: 7px; border-radius: 50%; }
     .console-output {
@@ -308,7 +308,7 @@
     .console-output::-webkit-scrollbar { width: 4px; }
     .console-output::-webkit-scrollbar-track { background: transparent; }
     .console-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
- 
+
     /* ─── VIEWER ─── */
     .viewer-pane {
       border-top: 1px solid var(--border);
@@ -358,7 +358,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
     }
- 
+
     /* ─── ANALYZING OVERLAY ─── */
     .analyzing-bar {
       position: absolute;
@@ -372,7 +372,7 @@
       0%   { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
- 
+
     /* ─── SCROLLBAR GLOBAL ─── */
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -380,14 +380,13 @@
   </style>
 </head>
 <body>
-{% raw %}
   <div id="root"></div>
- 
-  <script type="text/babel">
+
+  {% raw %}<script type="text/babel">
     const { useState, useRef, useEffect, useCallback } = React;
- 
+
     const PLACEHOLDER = "// Escribe tu código aquí...\n";
- 
+
     function App() {
       const [code, setCode]           = useState(PLACEHOLDER);
       const [isPlaceholder, setIsPlaceholder] = useState(true);
@@ -397,30 +396,30 @@
       const [analyzing, setAnalyzing]         = useState(false);
       const textareaRef = useRef(null);
       const fileInputRef = useRef(null);
- 
+
       // Line numbers
       const lineCount = code.split("\n").length;
       const lines = Array.from({ length: Math.max(lineCount, 20) }, (_, i) => i + 1);
- 
+
       const handleFocus = () => {
         if (isPlaceholder) {
           setCode("");
           setIsPlaceholder(false);
         }
       };
- 
+
       const handleBlur = () => {
         if (code.trim() === "") {
           setCode(PLACEHOLDER);
           setIsPlaceholder(true);
         }
       };
- 
+
       const handleChange = (e) => {
         setCode(e.target.value);
         setIsPlaceholder(false);
       };
- 
+
       const handleTab = (e) => {
         if (e.key === "Tab") {
           e.preventDefault();
@@ -433,7 +432,7 @@
           });
         }
       };
- 
+
       const analizar = async () => {
         if (isPlaceholder) return;
         setAnalyzing(true);
@@ -452,12 +451,12 @@
           setAnalyzing(false);
         }
       };
- 
+
       const cargar = (ruta, tab) => {
         setFrameUrl(ruta);
         setActiveTab(tab);
       };
- 
+
       const confirmarLimpiar = () => {
         if (window.confirm("¿Seguro que quieres limpiar todo el entorno?")) {
           setCode(PLACEHOLDER);
@@ -467,9 +466,9 @@
           setActiveTab(null);
         }
       };
- 
+
       const descargar = () => window.open("/descargar");
- 
+
       const handleFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -485,10 +484,10 @@
         reader.readAsText(file);
         e.target.value = "";
       };
- 
+
       return (
         <div className="app">
- 
+
           {/* ── TOPBAR ── */}
           <div className="topbar">
             <div className="topbar-logo">
@@ -504,11 +503,11 @@
               <span>servidor activo</span>
             </div>
           </div>
- 
+
           {/* ── SIDEBAR ── */}
           <div className="sidebar">
             <span className="sidebar-section">Acciones</span>
- 
+
             <button className="sidebar-btn btn-analizar" onClick={analizar} disabled={analyzing}>
               <span className="btn-icon">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -517,7 +516,7 @@
               </span>
               {analyzing ? "Analizando…" : "Analizar"}
             </button>
- 
+
             <button className="sidebar-btn btn-limpiar" onClick={confirmarLimpiar}>
               <span className="btn-icon">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -526,7 +525,7 @@
               </span>
               Limpiar
             </button>
- 
+
             <button className="sidebar-btn btn-descargar" onClick={descargar}>
               <span className="btn-icon">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -535,7 +534,7 @@
               </span>
               Descargar
             </button>
- 
+
             <button className="sidebar-btn btn-cargar" onClick={() => fileInputRef.current.click()}>
               <span className="btn-icon">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -551,9 +550,9 @@
               style={{ display: "none" }}
               onChange={handleFile}
             />
- 
+
             <span className="sidebar-section">Reportes</span>
- 
+
             <button
               className={`sidebar-btn btn-tokens ${activeTab === "tokens" ? "active" : ""}`}
               onClick={() => cargar("/tokens", "tokens")}
@@ -566,7 +565,7 @@
               </span>
               Tokens
             </button>
- 
+
             <button
               className={`sidebar-btn btn-errores ${activeTab === "errores" ? "active" : ""}`}
               onClick={() => cargar("/errores", "errores")}
@@ -579,7 +578,7 @@
               </span>
               Errores
             </button>
- 
+
             <button
               className={`sidebar-btn btn-recup ${activeTab === "recup" ? "active" : ""}`}
               onClick={() => cargar("/recuperables", "recup")}
@@ -592,10 +591,10 @@
               Recuperables
             </button>
           </div>
- 
+
           {/* ── MAIN ── */}
           <div className="main">
- 
+
             {/* Editor */}
             <div className="editor-pane">
               <div className="pane-label">Editor de código</div>
@@ -621,7 +620,7 @@
                 {analyzing && <div className="analyzing-bar"/>}
               </div>
             </div>
- 
+
             {/* Console */}
             <div className="console-pane">
               <div className="console-header">
@@ -632,7 +631,7 @@
               </div>
               <div className="console-output">{consoleText}</div>
             </div>
- 
+
             {/* Viewer */}
             <div className="viewer-pane">
               <div className="viewer-header">
@@ -665,14 +664,13 @@
                 </div>
               )}
             </div>
- 
+
           </div>
         </div>
       );
     }
- 
+
     ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-{% endraw %}
+  </script>{% endraw %}
 </body>
 </html>

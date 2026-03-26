@@ -1,99 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Tokens</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:          #050810;
+      --bg-panel:    #090d1a;
+      --bg-card:     #0d1225;
+      --border:      #1a2340;
+      --text-main:   #c8d8f8;
+      --text-muted:  #7a9cc8;
+      --text-dim:    #3a4a6a;
+      --green:       #22f08a;
+      --green-dim:   rgba(34,240,138,0.08);
+      --green-border:rgba(34,240,138,0.2);
+      --cyan:        #00d4ff;
+      --blue:        #4f8ef7;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .header-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+    .header .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+    }
+    .badge {
+      margin-left: auto;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th {
+      padding: 10px 16px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+    }
+    thead th:first-child { color: var(--green); }
+    tbody tr {
+      border-bottom: 1px solid rgba(26,35,64,0.6);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(34,240,138,0.04); }
+    tbody td {
+      padding: 9px 16px;
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+    tbody td:first-child {
+      color: var(--green);
+      font-weight: 600;
+    }
+    tbody td:nth-child(2) { color: var(--cyan); }
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+        <path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Reporte de Tokens</h1>
+      <div class="subtitle">Análisis léxico — salida de tokens</div>
+    </div>
+    <div class="badge" id="count-badge">— tokens</div>
+  </div>
 
-    <html>
-    <head><title>Reporte de Tokens</title></head>
-    <body>
-    <h1>Reporte de Tokens</h1>
-    <table border="1">
-    <tr><th>Tipo</th><th>Lexema</th><th>Línea</th><th>Columna</th></tr>
-    
+  <div class="table-wrap">
+    <table id="tabla-tokens">
+      <thead>
         <tr>
-            <td>PRINCIPAL</td>
-            <td>principal</td>
-            <td>1</td>
-            <td>0</td>
+          <th>Tipo</th>
+          <th>Lexema</th>
+          <th>Línea</th>
+          <th>Columna</th>
         </tr>
-        
-        <tr>
-            <td>PARENTESIS_ABIERTO</td>
-            <td>pasuvert</td>
-            <td>1</td>
-            <td>10</td>
-        </tr>
-        
-        <tr>
-            <td>PARENTESIS_CERRADO</td>
-            <td>pasferme</td>
-            <td>1</td>
-            <td>19</td>
-        </tr>
-        
-        <tr>
-            <td>LLAVE_ABIERTA</td>
-            <td>cleuvert</td>
-            <td>1</td>
-            <td>28</td>
-        </tr>
-        
-        <tr>
-            <td>ONTIE</td>
-            <td>ontie</td>
-            <td>2</td>
-            <td>4</td>
-        </tr>
-        
-        <tr>
-            <td>ID</td>
-            <td>x</td>
-            <td>2</td>
-            <td>10</td>
-        </tr>
-        
-        <tr>
-            <td>IGUAL</td>
-            <td>iyal</td>
-            <td>2</td>
-            <td>12</td>
-        </tr>
-        
-        <tr>
-            <td>INT</td>
-            <td>10</td>
-            <td>2</td>
-            <td>17</td>
-        </tr>
-        
-        <tr>
-            <td>PUNTOCOMA</td>
-            <td>puavir</td>
-            <td>2</td>
-            <td>20</td>
-        </tr>
-        
-        <tr>
-            <td>RETUR</td>
-            <td>retur</td>
-            <td>3</td>
-            <td>4</td>
-        </tr>
-        
-        <tr>
-            <td>ID</td>
-            <td>x</td>
-            <td>3</td>
-            <td>10</td>
-        </tr>
-        
-        <tr>
-            <td>PUNTOCOMA</td>
-            <td>puavir</td>
-            <td>3</td>
-            <td>12</td>
-        </tr>
-        
-        <tr>
-            <td>LLAVE_CERRADA</td>
-            <td>cleferme</td>
-            <td>4</td>
-            <td>0</td>
-        </tr>
-        </table></body></html>
+      </thead>
+      <tbody id="tbody">
+        <!-- rows injected by Python -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const rows = document.querySelectorAll('#tbody tr');
+    const badge = document.getElementById('count-badge');
+    if (rows.length === 0) {
+      document.getElementById('tbody').innerHTML =
+        '<tr><td colspan="4" class="empty">Sin tokens — analiza primero tu código</td></tr>';
+      badge.textContent = '0 tokens';
+    } else {
+      badge.textContent = rows.length + ' token' + (rows.length !== 1 ? 's' : '');
+    }
+  </script>
+</body>
+</html>
