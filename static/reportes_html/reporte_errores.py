@@ -88,10 +88,35 @@ def main():
 
     errores_sintacticos = listener.errores
 
-    # VALIDACION DE ERRORES SI ES QUE EXISTEN
+    # SI NO HAY ERRORES, IGUAL GENERAR REPORTE VACÍO
     if not errores_lexicos and not errores_sintacticos:
-        print("ERRORES: Sin errores")
-        return
+        filas = """
+        <tr>
+            <td colspan="4">Sin errores</td>
+        </tr>
+        """
+    else:
+        filas = ""
+
+        for e in errores_lexicos:
+            filas += f"""
+            <tr>
+                <td>Léxico</td>
+                <td>{e['lexema']}</td>
+                <td>{e['linea']}</td>
+                <td>{e['columna']}</td>
+            </tr>
+            """
+
+        for e in errores_sintacticos:
+            filas += f"""
+            <tr>
+                <td>Sintáctico</td>
+                <td>{e['mensaje']}</td>
+                <td>{e['linea']}</td>
+                <td>{e['columna']}</td>
+            </tr>
+            """
 
     #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
@@ -134,7 +159,14 @@ def main():
     with open(salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print("Reporte de errores generado")
+    total_errores = len(errores_lexicos) + len(errores_sintacticos)
+
+    if total_errores == 0:
+        print("Sin errores")
+    elif total_errores == 1:
+        print("1 error encontrado")
+    else:
+        print(f"{total_errores} errores encontrados")
 
 
 if __name__ == "__main__":

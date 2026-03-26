@@ -49,6 +49,16 @@ def analizar():
 
     print("Nuevo análisis ejecutado")
 
+    rutas_reportes = [
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_tokens.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html')
+    ]
+
+    for ruta in rutas_reportes:
+        if os.path.exists(ruta):
+            os.remove(ruta)
+
     # RUTAS DE LOS REPORTES
     ruta_tokens = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_tokens.py')
     ruta_errores = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_errores.py')

@@ -77,14 +77,11 @@ def main():
 
     parser.programa()
 
-    # VALIDA EL ERROR
-    if errores_lexicos:
-        print("Error léxico detectado")
-        return
+    # if errores_lexicos:
+    #     return
 
-    if listener_error.hay_error:
-        print("Error sintáctico detectado")
-        return
+    # if listener_error.hay_error:
+    #     return
 
     #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
@@ -118,7 +115,7 @@ def main():
     with open(ruta_salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print("Reporte de tokens generado")
+    print(f"{len(tokens_lista)} tokens encontrados")
 
 
 if __name__ == "__main__":

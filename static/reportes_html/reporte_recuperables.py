@@ -86,7 +86,7 @@ def main():
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_recuperables.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"Reporte de recuperables generado ({len(recuperables)} entradas)")
+    print(f"{len(recuperables)} recuperables encontrados")
 
 
 if __name__ == "__main__":
