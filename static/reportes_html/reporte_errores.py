@@ -11,6 +11,7 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
 
+# ================== VOCABULARIO ==================
 VOCABULARIO = [
     "ontie", "flote", "duble",
     "wi", "otre", "pendan", "retur",
@@ -19,18 +20,23 @@ VOCABULARIO = [
     "plu", "moan", "par", "bag", "minog", "aye", "compag"
 ]
 
+
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.4)
     return sugerencias[0] if sugerencias else ""
 
 
+# ================== LISTENER DE ERRORES ==================
 class MiErrorListener(ErrorListener):
     def __init__(self):
-        self.errores = []  # ← antes decía: self.hay_error = False
+        self.errores = []
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        if offendingSymbol is not None and sugerir_palabra(offendingSymbol.text):
-            return
+        if offendingSymbol is not None:
+            sugerencia = sugerir_palabra(offendingSymbol.text)
+            if sugerencia:
+                msg += f" | Sugerencia: '{sugerencia}'"
+
         self.errores.append({
             "linea": line,
             "columna": column,
@@ -38,15 +44,16 @@ class MiErrorListener(ErrorListener):
         })
 
 
-def procesar_tokens(lexer):
-    tokens_lista = []
+# ================== TOKENS ==================
+def obtener_tokens(lexer):
+    tokens = []
     token = lexer.nextToken()
 
     while token.type != Token.EOF:
         tipo = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
 
-        if tipo != "WS":
-            tokens_lista.append({
+        if tipo not in ["WS", "COMMENT", "LINE_COMMENT"]:
+            tokens.append({
                 "tipo": tipo,
                 "lexema": token.text,
                 "linea": token.line,
@@ -55,19 +62,26 @@ def procesar_tokens(lexer):
 
         token = lexer.nextToken()
 
-    return tokens_lista
+    return tokens
 
 
+# ================== MAIN ==================
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
-    # ── LÉXICO ──
-    input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
-    lexer = LenguajeLexer(input_stream)
-    errores_lexicos = procesar_tokens(lexer)
+    archivo = os.path.join(ruta_raiz, "programa.leng")
 
-    # ── SINTÁCTICO ──
-    input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
+    # ───────── LÉXICO ─────────
+    input_stream = FileStream(archivo)
+    lexer = LenguajeLexer(input_stream)
+
+    tokens = obtener_tokens(lexer)
+
+    # 🔥 SOLO errores reales
+    errores_lexicos = [t for t in tokens if t["tipo"] == "ERROR_CHAR"]
+
+    # ───────── SINTÁCTICO ─────────
+    input_stream2 = FileStream(archivo)
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
     parser = LenguajeParser(stream)
@@ -77,21 +91,26 @@ def main():
     parser.addErrorListener(listener)
     parser.programa()
 
-    # ✅ Si no hay nada, salir sin generar HTML
-    if not errores_lexicos and not listener.errores:
-        print("Sin errores")
+    errores_sintacticos = listener.errores
+
+    # ───────── VALIDACIÓN ─────────
+    if not errores_lexicos and not errores_sintacticos:
+        print("ERRORES: Sin errores")
         return
 
-    # ✅ Si hay errores, siempre generar el HTML
+    # ───────── GENERAR HTML ─────────
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
+
     if not os.path.exists(ruta_base):
-        print("ERROR: No existe errores_base.html")
+        print("ERRORES: No se pudo generar reporte")
         return
 
     with open(ruta_base, "r", encoding="utf-8") as f:
         html = f.read()
 
     filas = ""
+
+    # 🔴 ERRORES LÉXICOS
     for e in errores_lexicos:
         filas += f"""
         <tr>
@@ -102,7 +121,8 @@ def main():
         </tr>
         """
 
-    for e in listener.errores:
+    # 🔴 ERRORES SINTÁCTICOS
+    for e in errores_sintacticos:
         filas += f"""
         <tr>
             <td>Sintáctico</td>
@@ -114,11 +134,14 @@ def main():
 
     html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
 
-    with open(os.path.join(ruta_raiz, "reportes_html", "reporte_errores.html"), "w", encoding="utf-8") as f:
+    salida = os.path.join(ruta_raiz, "reportes_html", "reporte_errores.html")
+
+    with open(salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"Reporte de errores generado ({len(errores_lexicos)} léxicos, {len(listener.errores)} sintácticos)")
+    print("Reporte de errores generado")
 
 
+# ================== RUN ==================
 if __name__ == "__main__":
     main()
