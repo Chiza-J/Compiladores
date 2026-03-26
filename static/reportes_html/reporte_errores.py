@@ -11,7 +11,7 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
 
-# ================== VOCABULARIO ==================
+#VOCABULARIO 
 VOCABULARIO = [
     "ontie", "flote", "duble",
     "wi", "otre", "pendan", "retur",
@@ -26,7 +26,6 @@ def sugerir_palabra(lexema):
     return sugerencias[0] if sugerencias else ""
 
 
-# ================== LISTENER DE ERRORES ==================
 class MiErrorListener(ErrorListener):
     def __init__(self):
         self.errores = []
@@ -44,7 +43,6 @@ class MiErrorListener(ErrorListener):
         })
 
 
-# ================== TOKENS ==================
 def obtener_tokens(lexer):
     tokens = []
     token = lexer.nextToken()
@@ -65,13 +63,11 @@ def obtener_tokens(lexer):
     return tokens
 
 
-# ================== MAIN ==================
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
     archivo = os.path.join(ruta_raiz, "programa.leng")
 
-    # ───────── LÉXICO ─────────
     input_stream = FileStream(archivo)
     lexer = LenguajeLexer(input_stream)
 
@@ -80,7 +76,6 @@ def main():
     # 🔥 SOLO errores reales
     errores_lexicos = [t for t in tokens if t["tipo"] == "ERROR_CHAR"]
 
-    # ───────── SINTÁCTICO ─────────
     input_stream2 = FileStream(archivo)
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
@@ -93,12 +88,12 @@ def main():
 
     errores_sintacticos = listener.errores
 
-    # ───────── VALIDACIÓN ─────────
+    # VALIDACION DE ERRORES SI ES QUE EXISTEN
     if not errores_lexicos and not errores_sintacticos:
         print("ERRORES: Sin errores")
         return
 
-    # ───────── GENERAR HTML ─────────
+    #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
 
     if not os.path.exists(ruta_base):
@@ -110,7 +105,7 @@ def main():
 
     filas = ""
 
-    # 🔴 ERRORES LÉXICOS
+    # ERRORES LÉXICOS
     for e in errores_lexicos:
         filas += f"""
         <tr>
@@ -121,7 +116,7 @@ def main():
         </tr>
         """
 
-    # 🔴 ERRORES SINTÁCTICOS
+    # ERRORES SINTÁCTICOS
     for e in errores_sintacticos:
         filas += f"""
         <tr>
@@ -142,6 +137,5 @@ def main():
     print("Reporte de errores generado")
 
 
-# ================== RUN ==================
 if __name__ == "__main__":
     main()

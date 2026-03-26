@@ -56,7 +56,7 @@ def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
-    # ───── LEXICO ─────
+  
     input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer = LenguajeLexer(input_stream)
 
@@ -65,7 +65,7 @@ def main():
 
     procesar_tokens_recursivo(lexer, lexer.nextToken(), tokens_lista, errores_lexicos)
 
-    # ───── SINTACTICO ─────
+    
     input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
@@ -77,7 +77,7 @@ def main():
 
     parser.programa()
 
-    # ───── VALIDACIONES ─────
+    # VALIDA EL ERROR
     if errores_lexicos:
         print("Error léxico detectado")
         return
@@ -86,8 +86,7 @@ def main():
         print("Error sintáctico detectado")
         return
 
-    # ───── HTML BONITO ─────
-
+    #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
 
     if not os.path.exists(ruta_base):
