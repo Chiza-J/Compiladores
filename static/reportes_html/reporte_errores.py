@@ -1,5 +1,6 @@
 import sys
 import os
+import difflib
 
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, ruta_raiz)
@@ -10,11 +11,26 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
 
+VOCABULARIO = [
+    "ontie", "flote", "duble",
+    "wi", "otre", "pendan", "retur",
+    "amprimi", "principal",
+    "iyal", "puavir", "pasuvert", "pasferme", "cleuvert", "cleferme",
+    "plu", "moan", "par", "bag", "minog", "aye", "compag"
+]
+
+def sugerir_palabra(lexema):
+    sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.4)
+    return sugerencias[0] if sugerencias else ""
+
+
 class MiErrorListener(ErrorListener):
     def __init__(self):
-        self.errores = []
+        self.errores = []  # ← antes decía: self.hay_error = False
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        if offendingSymbol is not None and sugerir_palabra(offendingSymbol.text):
+            return
         self.errores.append({
             "linea": line,
             "columna": column,
@@ -22,21 +38,24 @@ class MiErrorListener(ErrorListener):
         })
 
 
-def procesar_tokens_recursivo(lexer, token, errores_lexicos):
-    if token.type == Token.EOF:
-        return
+def procesar_tokens(lexer):
+    tokens_lista = []
+    token = lexer.nextToken()
 
-    tipo = lexer.symbolicNames[token.type]
+    while token.type != Token.EOF:
+        tipo = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
 
-    # ✔ SOLO error real (sin sugerencias)
-    if tipo == "ERROR_CHAR":
-        errores_lexicos.append({
-            "linea": token.line,
-            "columna": token.column,
-            "lexema": token.text
-        })
+        if tipo != "WS":
+            tokens_lista.append({
+                "tipo": tipo,
+                "lexema": token.text,
+                "linea": token.line,
+                "columna": token.column
+            })
 
-    procesar_tokens_recursivo(lexer, lexer.nextToken(), errores_lexicos)
+        token = lexer.nextToken()
+
+    return tokens_lista
 
 
 def main():
@@ -45,9 +64,7 @@ def main():
     # ── LÉXICO ──
     input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer = LenguajeLexer(input_stream)
-
-    errores_lexicos = []
-    procesar_tokens_recursivo(lexer, lexer.nextToken(), errores_lexicos)
+    errores_lexicos = procesar_tokens(lexer)
 
     # ── SINTÁCTICO ──
     input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
@@ -58,16 +75,15 @@ def main():
     listener = MiErrorListener()
     parser.removeErrorListeners()
     parser.addErrorListener(listener)
-
     parser.programa()
 
-    # 🚨 CLAVE: si no hay errores → NO generar HTML
+    # ✅ Si no hay nada, salir sin generar HTML
     if not errores_lexicos and not listener.errores:
         print("Sin errores")
         return
 
+    # ✅ Si hay errores, siempre generar el HTML
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
-
     if not os.path.exists(ruta_base):
         print("ERROR: No existe errores_base.html")
         return
@@ -76,8 +92,6 @@ def main():
         html = f.read()
 
     filas = ""
-
-    # ── ERRORES LÉXICOS ──
     for e in errores_lexicos:
         filas += f"""
         <tr>
@@ -88,7 +102,6 @@ def main():
         </tr>
         """
 
-    # ── ERRORES SINTÁCTICOS ──
     for e in listener.errores:
         filas += f"""
         <tr>
@@ -104,7 +117,7 @@ def main():
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_errores.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print("Reporte de errores generado")
+    print(f"Reporte de errores generado ({len(errores_lexicos)} léxicos, {len(listener.errores)} sintácticos)")
 
 
 if __name__ == "__main__":

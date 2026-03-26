@@ -9,36 +9,40 @@ from antlr4 import *
 from antlr_todo.LenguajeLexer import LenguajeLexer
 
 
-VOCABULARIO = ["variabli", "ontie", "flote", "duble", "amprimi"]
-
+VOCABULARIO = [
+    "ontie", "flote", "duble",
+    "wi", "otre", "pendan", "retur",
+    "amprimi", "principal",
+    "iyal", "puavir", "pasuvert", "pasferme", "cleuvert", "cleferme",
+    "plu", "moan", "par", "bag", "minog", "aye", "compag"
+]
 
 def sugerir_palabra(lexema):
-    # 🔥 Bajamos el cutoff para detectar más errores tipo "onti"
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.4)
     return sugerencias[0] if sugerencias else ""
 
 
-def procesar_tokens_recursivo(lexer, token, recuperables):
+def procesar_tokens(lexer):
+    recuperables = []
+    token = lexer.nextToken()
+
     while token.type != Token.EOF:
-        tipo = lexer.symbolicNames[token.type]
+        tipo = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
         lexema = token.text
 
-        # 🔥 CASO 1: ERROR_CHAR (como antes)
         if tipo == "ERROR_CHAR":
             sugerencia = sugerir_palabra(lexema)
+            if sugerencia:  # ERROR_CHAR con sugerencia = recuperable
+                recuperables.append({
+                    "lexema": lexema,
+                    "sugerencia": sugerencia,
+                    "linea": token.line,
+                    "columna": token.column
+                })
 
-            recuperables.append({
-                "lexema": lexema,
-                "sugerencia": sugerencia if sugerencia else "Sin sugerencia",
-                "linea": token.line,
-                "columna": token.column
-            })
-
-        # 🔥 CASO 2: ID MAL ESCRITO (ESTO ES LO QUE TE FALTABA)
         elif tipo == "ID":
             sugerencia = sugerir_palabra(lexema)
-
-            if sugerencia:  # solo si hay algo parecido
+            if sugerencia:  # ID parecido a keyword = recuperable
                 recuperables.append({
                     "lexema": lexema,
                     "sugerencia": sugerencia,
@@ -48,16 +52,7 @@ def procesar_tokens_recursivo(lexer, token, recuperables):
 
         token = lexer.nextToken()
 
-    # 🔹 Último buffer (por si termina en error)
-    if buffer_error:
-        sugerencia = sugerir_palabra(buffer_error)
-
-        recuperables.append({
-            "lexema": buffer_error,
-            "sugerencia": sugerencia if sugerencia else "Sin sugerencia",
-            "linea": linea_inicio,
-            "columna": columna_inicio
-        })
+    return recuperables
 
 
 def main():
@@ -65,12 +60,9 @@ def main():
 
     input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer = LenguajeLexer(input_stream)
-
-    recuperables = []
-    procesar_tokens_recursivo(lexer, lexer.nextToken(), recuperables)
+    recuperables = procesar_tokens(lexer)
 
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "recuperables_base.html")
-
     if not os.path.exists(ruta_base):
         print("ERROR: No existe recuperables_base.html")
         return
@@ -79,7 +71,6 @@ def main():
         html = f.read()
 
     filas = ""
-
     for r in recuperables:
         filas += f"""
         <tr>
@@ -90,13 +81,12 @@ def main():
         </tr>
         """
 
-    # 🔥 IMPORTANTE: mantiene el diseño bonito
     html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
 
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_recuperables.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print("Reporte de recuperables generado")
+    print(f"Reporte de recuperables generado ({len(recuperables)} entradas)")
 
 
 if __name__ == "__main__":
