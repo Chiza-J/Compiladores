@@ -34,10 +34,12 @@ def procesar_tokens(lexer):
             sugerencia = sugerir_palabra(lexema)
             if sugerencia:  # ERROR_CHAR con sugerencia = recuperable
                 recuperables.append({
-                    "lexema": lexema,
-                    "sugerencia": sugerencia,
                     "linea": token.line,
-                    "columna": token.column
+                    "columna": token.column,
+                    "lexema": lexema,
+                    "sugerencia": sugerencia
+                    
+                    
                 })
 
         elif tipo == "ID":
