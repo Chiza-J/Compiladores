@@ -56,7 +56,12 @@ def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
-  
+    ruta_salida = os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html")
+
+    # 🔥 BORRAR HTML ANTERIOR SI EXISTE
+    if os.path.exists(ruta_salida):
+        os.remove(ruta_salida)
+
     input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer = LenguajeLexer(input_stream)
 
@@ -65,7 +70,6 @@ def main():
 
     procesar_tokens_recursivo(lexer, lexer.nextToken(), tokens_lista, errores_lexicos)
 
-    
     input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
@@ -77,13 +81,16 @@ def main():
 
     parser.programa()
 
-    # if errores_lexicos:
-    #     return
+    # 🔥 SI HAY ERRORES → NO GENERAR TOKENS
+    if errores_lexicos:
+        print("0 tokens (error léxico)")
+        return
 
-    # if listener_error.hay_error:
-    #     return
+    if listener_error.hay_error:
+        print("0 tokens (error sintáctico)")
+        return
 
-    #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
+    # 🔥 GENERAR HTML SOLO SI TODO ESTÁ BIEN
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
 
     if not os.path.exists(ruta_base):
@@ -110,12 +117,18 @@ def main():
         f'<tbody id="tbody">{filas}'
     )
 
-    ruta_salida = os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html")
-
     with open(ruta_salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"{len(tokens_lista)} tokens encontrados")
+    # MENSAJE BONITO
+    cantidad = len(tokens_lista)
+
+    if cantidad == 0:
+        print("Sin tokens")
+    elif cantidad == 1:
+        print("1 token encontrado")
+    else:
+        print(f"{cantidad} tokens encontrados")
 
 
 if __name__ == "__main__":
