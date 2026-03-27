@@ -115,7 +115,7 @@ def main():
             <tr>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
-                <td>{e['lexema']}</td>
+                <td>{e['mensaje']}</td>
                 <td>Sintactico</td>
             </tr>
             """
@@ -149,7 +149,7 @@ def main():
         <tr>
             <td>{e['linea']}</td>
             <td>{e['columna']}</td>
-            <td>{e['lexema']}</td>
+            <td>{e['mensaje']}</td>
             <td>Sintactico</td>
         </tr>
         """
