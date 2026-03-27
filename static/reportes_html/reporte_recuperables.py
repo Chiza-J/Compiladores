@@ -46,10 +46,10 @@ def procesar_tokens(lexer):
             sugerencia = sugerir_palabra(lexema)
             if sugerencia:  # ID parecido a keyword = recuperable
                 recuperables.append({
-                    "lexema": lexema,
-                    "sugerencia": sugerencia,
                     "linea": token.line,
-                    "columna": token.column
+                    "columna": token.column,
+                    "lexema": lexema,
+                    "sugerencia": sugerencia
                 })
 
         token = lexer.nextToken()
@@ -76,10 +76,10 @@ def main():
     for r in recuperables:
         filas += f"""
         <tr>
-            <td>{r['lexema']}</td>
-            <td>{r['sugerencia']}</td>
             <td>{r['linea']}</td>
             <td>{r['columna']}</td>
+            <td>{r['lexema']}</td>
+            <td>{r['sugerencia']}</td>
         </tr>
         """
 
