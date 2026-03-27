@@ -52,10 +52,12 @@ def obtener_tokens(lexer):
 
         if tipo not in ["WS", "COMMENT", "LINE_COMMENT"]:
             tokens.append({
-                "tipo": tipo,
-                "lexema": token.text,
                 "linea": token.line,
-                "columna": token.column
+                "columna": token.column,
+                "lexema": token.text,
+                "tipo": tipo
+                
+                
             })
 
         token = lexer.nextToken()
@@ -101,10 +103,10 @@ def main():
         for e in errores_lexicos:
             filas += f"""
             <tr>
-                <td>Léxico</td>
-                <td>{e['lexema']}</td>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
+                <td>{e['lexema']}</td>
+                <td>Léxico</td>
             </tr>
             """
 
