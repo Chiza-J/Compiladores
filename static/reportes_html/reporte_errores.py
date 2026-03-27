@@ -113,10 +113,10 @@ def main():
         for e in errores_sintacticos:
             filas += f"""
             <tr>
-                <td>Sintáctico</td>
-                <td>{e['mensaje']}</td>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
+                <td>{e['lexema']}</td>
+                <td>Sintactico</td>
             </tr>
             """
 
@@ -136,10 +136,10 @@ def main():
     for e in errores_lexicos:
         filas += f"""
         <tr>
-            <td>Léxico</td>
-            <td>{e['lexema']}</td>
             <td>{e['linea']}</td>
             <td>{e['columna']}</td>
+            <td>{e['lexema']}</td>
+            <td>Léxico</td>
         </tr>
         """
 
@@ -147,10 +147,10 @@ def main():
     for e in errores_sintacticos:
         filas += f"""
         <tr>
-            <td>Sintáctico</td>
-            <td>{e['mensaje']}</td>
             <td>{e['linea']}</td>
             <td>{e['columna']}</td>
+            <td>{e['lexema']}</td>
+            <td>Sintactico</td>
         </tr>
         """
 
