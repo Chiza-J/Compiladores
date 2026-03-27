@@ -1,0 +1,24 @@
+principal pasuvert pasferme cleuvert
+
+    ontie x iyal 10 puavir
+    flote y iyal 10.5 puavir
+    duble z iyal 20.25 puavir
+
+    x iyal x plu 5 puavir
+    y iyal y moan 2.5 puavir
+
+    amprimi pasuvert x pasferme puavir
+
+    wi pasuvert x minog 20 pasferme cleuvert
+        amprimi pasuvert x pasferme puavir
+    cleferme otre cleuvert
+        amprimi pasuvert y pasferme puavir
+    cleferme
+
+    pendan pasuvert x minog 15 pasferme cleuvert
+        x iyal x plu 1 puavir
+    cleferme
+
+    retur x puavir
+
+cleferme
