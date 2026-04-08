@@ -58,7 +58,7 @@ def main():
 
     ruta_salida = os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html")
 
-    # 🔥 BORRAR HTML ANTERIOR SI EXISTE
+    # BORRAR HTML ANTERIOR SI EXISTE
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
@@ -81,7 +81,7 @@ def main():
 
     parser.programa()
 
-    # 🔥 SI HAY ERRORES → NO GENERAR TOKENS
+    # SI HAY ERRORES NO GENERA TOKENS
     if errores_lexicos:
         print("0 tokens (error léxico)")
         return
@@ -90,7 +90,7 @@ def main():
         print("0 tokens (error sintáctico)")
         return
 
-    # 🔥 GENERAR HTML SOLO SI TODO ESTÁ BIEN
+    # GENERA HTML SI ESTÁ BIEN
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
 
     if not os.path.exists(ruta_base):
