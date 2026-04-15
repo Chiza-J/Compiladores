@@ -63,10 +63,12 @@ def analizar():
     ruta_tokens = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_tokens.py')
     ruta_errores = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_errores.py')
     ruta_rec = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_recuperables.py')
+    ruta_semantico = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_semantico.py')
 
     salida_tokens = ejecutar(ruta_tokens)
     salida_errores = ejecutar(ruta_errores)
     salida_rec = ejecutar(ruta_rec)
+    salida_semantico = ejecutar(ruta_semantico)
 
     salida = f"""
 ================= ANALIZADOR =================
@@ -79,6 +81,9 @@ def analizar():
 
  RECUPERABLES:
 {salida_rec}
+
+ SEMÁNTICO:
+{salida_semantico}
 
 ==============================================
 """
@@ -160,6 +165,13 @@ def limpiar():
 
     return jsonify({"mensaje": "Entorno limpio"})
 
+@app.route('/semantico')
+def ver_semantico():
+    ruta = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_semantico.html')
+    base = os.path.join(RUTA_PROYECTO, 'reportes_html', 'semantico_base.html')
+    if os.path.exists(ruta):
+        return send_file(ruta)
+    return send_file(base)
 
 if __name__ == '__main__':
     app.run(debug=True)
