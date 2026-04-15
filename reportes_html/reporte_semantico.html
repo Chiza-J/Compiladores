@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Errores Semánticos</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:           #050810;
+      --bg-panel:     #090d1a;
+      --border:       #1a2340;
+      --text-main:    #c8d8f8;
+      --text-muted:   #7a9cc8;
+      --text-dim:     #3a4a6a;
+      --amber:        #ffb347;
+      --amber-dim:    rgba(255,179,71,0.08);
+      --amber-border: rgba(255,179,71,0.2);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .header-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--amber);
+    }
+    .header .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+    }
+    .badge {
+      margin-left: auto;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-border);
+      color: var(--amber);
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th {
+      padding: 10px 16px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+    }
+    thead th:first-child { color: var(--amber); }
+    tbody tr {
+      border-bottom: 1px solid rgba(26,35,64,0.6);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,179,71,0.04); }
+    tbody td {
+      padding: 9px 16px;
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+    tbody td:nth-child(1),
+    tbody td:nth-child(2) {
+      color: var(--text-muted);
+      font-size: 11px;
+      width: 90px;
+    }
+    tbody td:nth-child(3) { color: var(--amber); }
+    .no-errors {
+      padding: 40px;
+      text-align: center;
+      color: #22f08a;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 19h20L12 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M12 9v5M12 16.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Errores Semánticos</h1>
+      <div class="subtitle">Análisis semántico — tipos y declaraciones</div>
+    </div>
+    <div class="badge" id="count-badge">— errores</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Línea</th>
+          <th>Columna</th>
+          <th>Mensaje</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+            <tr>
+                <td>7</td>
+                <td>6</td>
+                <td>Variable 'x' ya fue declarada anteriormente</td>
+                <td>Semántico</td>
+            </tr>
+            
+        <!-- rows injected by Python -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const rows  = document.querySelectorAll('#tbody tr');
+    const badge = document.getElementById('count-badge');
+    const tbody = document.getElementById('tbody');
+    if (rows.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="4" class="no-errors">✓ &nbsp;Sin errores semánticos detectados</td></tr>';
+      badge.textContent = '0 errores';
+    } else {
+      badge.textContent = rows.length + ' error' + (rows.length !== 1 ? 'es' : '');
+    }
+  </script>
+</body>
+</html>
