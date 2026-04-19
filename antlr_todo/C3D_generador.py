@@ -96,3 +96,11 @@ class C3DGenerador(LenguajeVisitor):
 
         self.emit(f"goto {label_start}")
         self.emit(f"{label_end}:")
+
+    #Return
+    def visitRetorno(self, ctx):
+        if ctx.expr():
+            value = self.visit(ctx.expr())
+            self.emit(f"return {value}")
+        else:
+            self.emit("return")
