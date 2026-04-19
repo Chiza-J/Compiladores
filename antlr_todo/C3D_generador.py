@@ -41,4 +41,10 @@ class C3DGenerador(LenguajeVisitor):
         
         self.emit(f"{var} = {value}")
 
-    
+
+# definicion de asignaciones
+    def visitAsignacion(self, ctx):
+        var = ctx.ID().getText()
+        value = self.visit(ctx.expr())
+
+        self.emit(f"{var} = {value}")
