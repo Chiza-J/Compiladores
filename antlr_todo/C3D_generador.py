@@ -78,4 +78,21 @@ class C3DGenerador(LenguajeVisitor):
             self.emit(f"{label_end}:")
         else:
             self.emit(f"{label_false}:")
-            
+
+    # Ciclo while
+    def visitCiclo_while(self, ctx):
+        label_start = self.new_temp()
+        label_true = self.new_temp()
+        label_end = self.new_temp()
+
+        self.emit(f"{label_start}:")
+
+        cond = self.visit(ctx.expr())
+        self.emit(f"if {cond} goto {label_true}")
+        self.emit(f"goto {label_end}")
+
+        self.emit(f"{label_true}:")
+        self.visit(ctx.bloque())
+
+        self.emit(f"goto {label_start}")
+        self.emit(f"{label_end}:")
