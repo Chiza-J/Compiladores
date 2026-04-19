@@ -66,13 +66,14 @@ def analizar():
     ruta_rec = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_recuperables.py')
     ruta_semantico = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_semantico.py')
     ruta_tabla = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'tabla_simbolos.py')
-
+    ruta_c3d = os.path.join(RUTA_PROYECTO, 'generar_c3d.py')
 
     salida_tokens = ejecutar(ruta_tokens)
     salida_errores = ejecutar(ruta_errores)
     salida_rec = ejecutar(ruta_rec)
     salida_semantico = ejecutar(ruta_semantico)
     salida_tabla = ejecutar(ruta_tabla)
+    salida_c3d = ejecutar(ruta_c3d)
 
     salida = f"""
 ================= ANALIZADOR =================
@@ -91,6 +92,9 @@ def analizar():
 
  TABLA DE SÍMBOLOS:
 {salida_tabla}
+
+Codigo 3 direcciones:
+{salida_c3d}
 
 ==============================================
 """
@@ -195,5 +199,10 @@ def ver_tabla_simbolos():
 
     return send_file(base)
 
+@app.route('/c3d')
+def c3d():
+    ruta_c3d = os.path.join(RUTA_PROYECTO, 'generar_c3d.py')
+    salida = ejecutar(ruta_c3d)
+    return f"<pre>{salida}</pre>"
 if __name__ == '__main__':
     app.run(debug=True)
