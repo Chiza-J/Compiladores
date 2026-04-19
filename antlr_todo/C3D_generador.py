@@ -48,3 +48,10 @@ class C3DGenerador(LenguajeVisitor):
         value = self.visit(ctx.expr())
 
         self.emit(f"{var} = {value}")
+
+#print del C3D
+    def visitImpresion(self, ctx):
+        value = self.visit(ctx.expr())
+        self.emit(f"print {value}")
+
+    
