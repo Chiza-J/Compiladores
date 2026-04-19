@@ -54,4 +54,28 @@ class C3DGenerador(LenguajeVisitor):
         value = self.visit(ctx.expr())
         self.emit(f"print {value}")
 
-    
+    # funcion de if
+    def visitCondicion_if(self, ctx):
+        cond = self.visit(ctx.expr())
+
+        label_true = self.new_temp()
+        label_false = self.new_temp()
+
+        self.emit(f"if {cond} goto {label_true}")
+        self.emit(f"goto {label_false}")
+
+        self.emit("f{label_true}:")
+
+        self.visit(ctx.bloque(0))
+
+        if ctx.OTRE():
+            label_end = self.new_temp()
+            self.emit(f"got {label_end}")
+
+            self.emit(f"{label_false}:")
+            self.visit(ctx.bloque(1))
+
+            self.emit(f"{label_end}:")
+        else:
+            self.emit(f"{label_false}:")
+            
