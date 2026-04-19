@@ -6,21 +6,24 @@ class C3DGenerador(LenguajeVisitor):
     def __init__(self):
         self.codigo = []
         self.temp_count = 0
+        self.label_count = 0
 
     def new_temp(self):
         self.temp_count += 1
         return f"t{self.temp_count}"
+    
+    def new_label(self):
+        self.label_count += 1
+        return f"L{self.label_count}"
     
     def emit(self, line):
         self.codigo.append(line)
 
     #Deviinimos las expresiones a partir del visitor
     def visitExpr(self, ctx):
-        #si se encuentra el nodo hijo del arbol retorna el texto que contenga
         if ctx.getChildCount() == 1:
             return ctx.getText()
         
-        #Recorre el arbol
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
         op = ctx.OP().getText()
@@ -34,7 +37,7 @@ class C3DGenerador(LenguajeVisitor):
     def visitDeclaracion(self, ctx):
         var = ctx.ID().getText()
 
-        if ctx.expr_expr_entera():
+        if ctx.expr_entera():
             value = self.visit(ctx.expr_entera())
         else:
             value = self.visit(ctx.expr_decimal())
@@ -58,44 +61,43 @@ class C3DGenerador(LenguajeVisitor):
     def visitCondicion_if(self, ctx):
         cond = self.visit(ctx.expr())
 
-        label_true = self.new_temp()
-        label_false = self.new_temp()
+        Ltrue = self.new_label()
+        Lfalse = self.new_label()
 
-        self.emit(f"if {cond} goto {label_true}")
-        self.emit(f"goto {label_false}")
+        self.emit(f"if {cond} goto {Ltrue}")
+        self.emit(f"goto {Lfalse}")
 
-        self.emit("f{label_true}:")
-
+        self.emit(f"{Ltrue}:")
         self.visit(ctx.bloque(0))
 
         if ctx.OTRE():
-            label_end = self.new_temp()
-            self.emit(f"got {label_end}")
+            Lend = self.new_label()
+            self.emit(f"goto {Lend}")
 
-            self.emit(f"{label_false}:")
+            self.emit(f"{Lfalse}:")
             self.visit(ctx.bloque(1))
 
-            self.emit(f"{label_end}:")
+            self.emit(f"{Lend}:")
         else:
-            self.emit(f"{label_false}:")
+            self.emit(f"{Lfalse}:")
 
     # Ciclo while
     def visitCiclo_while(self, ctx):
-        label_start = self.new_temp()
-        label_true = self.new_temp()
-        label_end = self.new_temp()
+        Lstart = self.new_label()
+        Ltrue = self.new_label()
+        Lend = self.new_label()
 
-        self.emit(f"{label_start}:")
+        self.emit(f"{Lstart}:")
 
         cond = self.visit(ctx.expr())
-        self.emit(f"if {cond} goto {label_true}")
-        self.emit(f"goto {label_end}")
+        self.emit(f"if {cond} goto {Ltrue}")
+        self.emit(f"goto {Lend}")
 
-        self.emit(f"{label_true}:")
+        self.emit(f"{Ltrue}:")
         self.visit(ctx.bloque())
 
-        self.emit(f"goto {label_start}")
-        self.emit(f"{label_end}:")
+        self.emit(f"goto {Lstart}")
+        self.emit(f"{Lend}:")
 
     #Return
     def visitRetorno(self, ctx):
