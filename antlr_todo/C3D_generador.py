@@ -29,3 +29,16 @@ class C3DGenerador(LenguajeVisitor):
         self.emit(f"{temp} = {left} {op} {right}")
 
         return temp
+    
+    #identificamos las declaraciones de variables
+    def visitDeclaracion(self, ctx):
+        var = ctx.ID().getText()
+
+        if ctx.expr_expr_entera():
+            value = self.visit(ctx.expr_entera())
+        else:
+            value = self.visit(ctx.expr_decimal())
+        
+        self.emit(f"{var} = {value}")
+
+    
