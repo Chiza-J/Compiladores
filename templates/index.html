@@ -192,7 +192,7 @@
     /* ─── MAIN AREA ─── */
     .main {
       display: grid;
-      grid-template-rows: 1fr 180px 200px;
+      grid-template-rows: 1fr 1fr;
       overflow: hidden;
     }
 
@@ -311,55 +311,6 @@
     .console-output::-webkit-scrollbar-track { background: transparent; }
     .console-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* ─── VIEWER ─── */
-    .viewer-pane {
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .viewer-header {
-      display: flex;
-      align-items: center;
-      padding: 6px 14px;
-      border-bottom: 1px solid var(--border);
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    .viewer-tabs {
-      display: flex;
-      gap: 4px;
-      margin-left: auto;
-    }
-    .viewer-tab {
-      font-size: 10px;
-      font-family: 'JetBrains Mono', monospace;
-      padding: 3px 10px;
-      border-radius: 4px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .viewer-tab:hover { color: var(--text-muted); border-color: var(--border); }
-    .viewer-tab.active { background: rgba(79,142,247,0.1); border-color: var(--accent-blue); color: var(--accent-blue); }
-    .viewer-frame {
-      flex: 1;
-      border: none;
-      background: white;
-    }
-    .viewer-empty {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 10px;
-      color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-    }
 
     /* ─── ANALYZING OVERLAY ─── */
     .analyzing-bar {
@@ -379,6 +330,65 @@
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-track { background: transparent; }
     .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ─── MODAL FLOTANTE ─── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+    }
+
+    /* Ventana */
+    .modal-content {
+      position: absolute;
+      width: 80%;
+      height: 75%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header invisible pero draggable */
+    .modal-drag {
+      height: 28px;
+      cursor: move;
+      background: transparent;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    /* Botones */
+    .modal-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      margin-left: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .modal-close {
+      background: var(--accent-red);
+    }
+
+    .modal-max {
+      background: var(--accent-green);
+    }
+
+    /* iframe ocupa todo */
+    .modal-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -493,6 +503,70 @@
         reader.readAsText(file);
         e.target.value = "";
       };
+      function DraggableModal({ frameUrl, onClose }) {
+  const modalRef = React.useRef(null);
+  const [pos, setPos] = React.useState({ x: window.innerWidth / 2 - window.innerWidth * 0.4, y: window.innerHeight / 2 - window.innerHeight * 0.35});
+  const [isMax, setIsMax] = React.useState(false);
+  const [dragging, setDragging] = React.useState(false);
+  const offset = React.useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    setDragging(true);
+    offset.current = {
+      x: e.clientX - pos.x,
+      y: e.clientY - pos.y
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging || isMax) return;
+    setPos({
+      x: e.clientX - offset.current.x,
+      y: e.clientY - offset.current.y
+    });
+  };
+
+  const handleMouseUp = () => setDragging(false);
+
+  React.useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  });
+
+  return (
+    <div className="modal">
+      <div
+        ref={modalRef}
+        className="modal-content"
+        style={
+          isMax
+            ? { top: 0, left: 0, width: "100%", height: "100%" }
+            : { top: pos.y, left: pos.x }
+        }
+      >
+
+        {/* Barra draggable SIN título */}
+        <div className="modal-drag" onMouseDown={handleMouseDown}>
+          <button
+            className="modal-btn modal-max"
+            onClick={() => setIsMax(!isMax)}
+          />
+          <button
+            className="modal-btn modal-close"
+            onClick={onClose}
+          />
+        </div>
+
+        <iframe className="modal-frame" src={frameUrl} />
+
+      </div>
+    </div>
+  );
+}
 
       return (
         <div className="app">
@@ -614,91 +688,62 @@
           </div>
 
           {/* ── MAIN ── */}
-          <div className="main">
+            <div className="main">
 
-            {/* Editor */}
+          {/* Editor */}
             <div className="editor-pane">
-              <div className="pane-label">Editor de código</div>
-              <div className="editor-wrap">
-                <div className="editor-gutter">
-                  {lines.map(n => (
-                    <div key={n} className="line-num">{n}</div>
-                  ))}
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  className={`code-textarea${isPlaceholder ? " placeholder" : ""}`}
-                  value={code}
-                  onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  onKeyDown={handleTab}
-                  spellCheck={false}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                />
-                {analyzing && <div className="analyzing-bar"/>}
-              </div>
+            <div className="pane-label">Editor de código</div>
+            <div className="editor-wrap">
+            <div className="editor-gutter">
+                {lines.map(n => (
+            <div key={n} className="line-num">{n}</div>
+        ))}
             </div>
-
-            {/* Console */}
-            <div className="console-pane">
-              <div className="console-header">
-                <div className="console-dot" style={{ background: "#ff5f57" }}/>
-                <div className="console-dot" style={{ background: "#febc2e" }}/>
-                <div className="console-dot" style={{ background: "#28c840" }}/>
-                <span className="console-title" style={{ marginLeft: 6 }}>Consola de salida</span>
-              </div>
-              <div className="console-output">{consoleText}</div>
-            </div>
-
-            {/* Viewer */}
-            <div className="viewer-pane">
-              <div className="viewer-header">
-                <span className="pane-label" style={{ marginBottom: 0 }}>Visor de reportes</span>
-                <div className="viewer-tabs">
-                  {[
-                    { key: "tokens",  label: "Tokens",  color: "var(--accent-green)" },
-                    { key: "errores", label: "Errores", color: "var(--accent-red)" },
-                    { key: "recup",   label: "Recuperables", color: "var(--accent-amber)" },
-                    { key: "tabla",   label: "Tabla", color: "var(--accent-cyan)" },
-                  ].map(t => (
-                    <button
-                      key={t.key}
-                      className={`viewer-tab ${activeTab === t.key ? "active" : ""}`}
-                      style={activeTab === t.key ? { borderColor: t.color, color: t.color, background: t.color + "18" } : {}}
-                      onClick={() => {
-                       let ruta = "";
-
-                        if (t.key === "recup") ruta = "/recuperables";
-                          else if (t.key === "tabla") ruta = "/tabla_simbolos";
-                          else ruta = `/${t.key}`;
-
-                      cargar(ruta, t.key);
-                      }}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {frameUrl ? (
-                <iframe className="viewer-frame" src={frameUrl} key={frameUrl}/>
-              ) : (
-                <div className="viewer-empty">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                  <span>Analiza primero para ver reportes</span>
-                </div>
-              )}
-            </div>
-
-          </div>
+      <textarea
+            ref={textareaRef}
+            className={`code-textarea${isPlaceholder ? " placeholder" : ""}`}
+            value={code}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleTab}
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+          />
+          {analyzing && <div className="analyzing-bar"/>}
         </div>
-      );
-    }
+      </div>
+
+              {/* Console */}
+              <div className="console-pane">
+                <div className="console-header">
+                  <div className="console-dot" style={{ background: "#ff5f57" }}/>
+                  <div className="console-dot" style={{ background: "#febc2e" }}/>
+                  <div className="console-dot" style={{ background: "#28c840" }}/>
+                  <span className="console-title" style={{ marginLeft: 6 }}>
+                    Consola de salida
+                  </span>
+                </div>
+                <div className="console-output">{consoleText}</div>
+              </div>
+
+            </div>
+
+            {/* ── MODAL REPORTES ── */}
+            {activeTab && (
+            <DraggableModal
+               frameUrl={frameUrl}
+                onClose={() => {
+                setActiveTab(null);
+                setFrameUrl("");
+           }}
+          />
+          )}
+            </div> 
+      );  
+  }  
 
     ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>{% endraw %}
