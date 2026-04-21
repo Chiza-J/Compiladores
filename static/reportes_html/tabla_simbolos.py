@@ -24,34 +24,87 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
     def __init__(self):
         self.tabla_simbolos = {}
         self.errores = []
+        self.scope = "global"
 
+    # 🔹 DECLARACIÓN
     def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
-        # Determinar tipo
         if ctx.ONTIE():
-            tipo = 'ontie'
+            tipo = 'int'
         elif ctx.FLOTE():
-            tipo = 'flote'
+            tipo = 'float'
         else:
-            tipo = 'duble'
+            tipo = 'double'
 
-        # Validar duplicados
+        valor = None
+        if ctx.expr_entera():
+            valor = ctx.expr_entera().getText()
+        elif ctx.expr_decimal():
+            valor = ctx.expr_decimal().getText()
+
         if nombre in self.tabla_simbolos:
             self.errores.append({
-                "linea":   linea,
+                "linea": linea,
                 "columna": col,
-                "mensaje": f"Variable '{nombre}' ya fue declarada anteriormente",
-                "tipo":    "Semántico"
+                "mensaje": f"Variable '{nombre}' ya fue declarada",
+                "tipo": "Semántico"
             })
         else:
             self.tabla_simbolos[nombre] = {
                 "tipo": tipo,
+                "categoria": "Variable",
+                "ambito": self.scope,
+                "valor": valor,
+                "linea": linea,
+                "columna": col,
+                "usos": []
+            }
+
+        return self.visitChildren(ctx)
+
+    # 🔹 ASIGNACIÓN (uso)
+    def visitAsignacion(self, ctx: LenguajeParser.AsignacionContext):
+        nombre = ctx.ID().getText()
+        linea  = ctx.ID().getSymbol().line
+        col    = ctx.ID().getSymbol().column
+
+        if nombre not in self.tabla_simbolos:
+            self.errores.append({
+                "linea": linea,
+                "columna": col,
+                "mensaje": f"Variable '{nombre}' no declarada",
+                "tipo": "Semántico"
+            })
+        else:
+            self.tabla_simbolos[nombre]["usos"].append({
                 "linea": linea,
                 "columna": col
-            }
+            })
+
+        return self.visitChildren(ctx)
+
+    # 🔹 USO EN EXPRESIONES 
+    def visitExpr(self, ctx: LenguajeParser.ExprContext):
+        if ctx.ID():
+            nombre = ctx.ID().getText()
+            linea  = ctx.ID().getSymbol().line
+            col    = ctx.ID().getSymbol().column
+
+            if nombre in self.tabla_simbolos:
+                self.tabla_simbolos[nombre]["usos"].append({
+                    "linea": linea,
+                    "columna": col
+                })
+            else:
+                self.errores.append({
+                    "linea": linea,
+                    "columna": col,
+                    "mensaje": f"Variable '{nombre}' no declarada",
+                    "tipo": "Semántico"
+                })
 
         return self.visitChildren(ctx)
 
@@ -106,12 +159,17 @@ def main():
     filas = ""
 
     for nombre, datos in visitor.tabla_simbolos.items():
+        usos = ", ".join([f"(L{u['linea']},C{u['columna']})" for u in datos['usos']])
         filas += f"""
         <tr>
             <td>{nombre}</td>
             <td>{datos['tipo']}</td>
+            <td>{datos['categoria']}</td>
+            <td>{datos['ambito']}</td>
+            <td>{datos['valor']}</td>
             <td>{datos['linea']}</td>
             <td>{datos['columna']}</td>
+            <td>{usos}</td>
         </tr>
         """
 
