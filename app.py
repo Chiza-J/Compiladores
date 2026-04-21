@@ -184,6 +184,9 @@ def limpiar():
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html'),
         os.path.join(RUTA_PROYECTO, 'programa.leng'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_c3d.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.cpp'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.c3d'),
     ]
 
     for ruta in rutas:
