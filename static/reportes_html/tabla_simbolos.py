@@ -250,10 +250,10 @@ def main():
 
     # ── colores y estilos por evento ──────────────────────────
     EVENTO_STYLE = {
-        'declaracion':            ('#22f08a', '▶'),
-        'asignacion':             ('#00d4ff', '✎'),
-        'uso':                    ('#f5a623', '◈'),
-        'asignacion (no declarada)': ('#ff4d6a', '⚠'),
+        'declaracion':            ('#22f08a', ''),
+        'asignacion':             ('#00d4ff', ''),
+        'uso':                    ('#f5a623', ''),
+        'asignacion (no declarada)': ('#ff4d6a', ''),
     }
 
     SCOPE_COLOR = {
@@ -274,7 +274,7 @@ def main():
         bg = '#0d1225' if i % 2 == 0 else '#090d1a'
 
         # indicador de inicialización
-        init_icon = '✓' if h['inicializado'] else '✗'
+        init_icon = 'Si' if h['inicializado'] else 'No'
         init_color = '#22f08a' if h['inicializado'] else '#ff4d6a'
 
         filas += f"""
@@ -282,7 +282,7 @@ def main():
             <td style="color:#22f08a;font-weight:600">{h['nombre']}</td>
             <td><span style="color:{color_tipo};background:rgba(79,142,247,0.08);padding:1px 7px;border-radius:3px;font-size:11px">{h['tipo']}</span></td>
             <td><span style="color:{color_scope};font-size:10px;letter-spacing:.05em">{h['scope']}</span></td>
-            <td><span style="color:{color_ev}">{icono}</span> <span style="color:{color_ev};font-size:10px;letter-spacing:.06em;text-transform:uppercase">{h['evento']}</span></td>
+            <td><span style="color:{color_ev};font-size:10px;letter-spacing:.06em;text-transform:uppercase">{h['evento']}</span></td>
             <td style="color:#7a9cc8;font-size:11px;font-family:'JetBrains Mono',monospace">{h['valor']}</td>
             <td style="color:{init_color};text-align:center;font-size:12px">{init_icon}</td>
             <td style="color:#4a5a7a;font-size:11px;text-align:center">{h['veces_asignada']}</td>
