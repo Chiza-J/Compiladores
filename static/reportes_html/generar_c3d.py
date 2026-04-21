@@ -228,7 +228,7 @@ def main():
         f.write(html)
 
     total = len([l for l in codigo_c3d if l.strip()])
-    print(f"{total} instrucciones C3D generadas → salida.cpp lista")
+    print(f"{total} instrucciones C3D generadas - salida.cpp lista")
 
 
 if __name__ == '__main__':
