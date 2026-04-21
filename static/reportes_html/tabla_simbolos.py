@@ -42,11 +42,7 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         self._contexto = []
 
         self.errores = []
-        self.scope = "global"
 
-<<<<<<< HEAD
-    # 🔹 DECLARACIÓN
-=======
     # ── helpers ──────────────────────────────────────────────
 
     def _scope_actual(self):
@@ -92,48 +88,18 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         return None
 
     # ── declaración: ontie/flote/duble x iyal expr ───────────
->>>>>>> 50e67df (Enriquesiendo la tabla de simbolos)
     def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
         if ctx.ONTIE():
-            tipo = 'int'
+            tipo = 'ontie'
         elif ctx.FLOTE():
-            tipo = 'float'
+            tipo = 'flote'
         else:
-            tipo = 'double'
+            tipo = 'duble'
 
-        valor = None
-        if ctx.expr_entera():
-            valor = ctx.expr_entera().getText()
-        elif ctx.expr_decimal():
-            valor = ctx.expr_decimal().getText()
-
-<<<<<<< HEAD
-        if nombre in self.tabla_simbolos:
-            self.errores.append({
-                "linea": linea,
-                "columna": col,
-                "mensaje": f"Variable '{nombre}' ya fue declarada",
-                "tipo": "Semántico"
-            })
-        else:
-            self.tabla_simbolos[nombre] = {
-                "tipo": tipo,
-                "categoria": "Variable",
-                "ambito": self.scope,
-                "valor": valor,
-                "linea": linea,
-                "columna": col,
-                "usos": []
-            }
-
-        return self.visitChildren(ctx)
-
-    # 🔹 ASIGNACIÓN (uso)
-=======
         # extraer valor inicial como texto
         if ctx.expr_entera():
             valor_txt = ctx.expr_entera().getText()
@@ -168,48 +134,11 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # ── asignación: x iyal expr ───────────────────────────────
->>>>>>> 50e67df (Enriquesiendo la tabla de simbolos)
     def visitAsignacion(self, ctx: LenguajeParser.AsignacionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
-<<<<<<< HEAD
-        if nombre not in self.tabla_simbolos:
-            self.errores.append({
-                "linea": linea,
-                "columna": col,
-                "mensaje": f"Variable '{nombre}' no declarada",
-                "tipo": "Semántico"
-            })
-        else:
-            self.tabla_simbolos[nombre]["usos"].append({
-                "linea": linea,
-                "columna": col
-            })
-
-        return self.visitChildren(ctx)
-
-    # 🔹 USO EN EXPRESIONES 
-    def visitExpr(self, ctx: LenguajeParser.ExprContext):
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            linea  = ctx.ID().getSymbol().line
-            col    = ctx.ID().getSymbol().column
-
-            if nombre in self.tabla_simbolos:
-                self.tabla_simbolos[nombre]["usos"].append({
-                    "linea": linea,
-                    "columna": col
-                })
-            else:
-                self.errores.append({
-                    "linea": linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' no declarada",
-                    "tipo": "Semántico"
-                })
-=======
         valor_txt = ctx.expr().getText()
 
         if nombre in self.tabla:
@@ -218,7 +147,6 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         else:
             # variable no declarada — el semántico ya lo reporta
             self._agregar_evento(nombre, 'asignacion (no declarada)', linea, col, valor=valor_txt)
->>>>>>> 50e67df (Enriquesiendo la tabla de simbolos)
 
         return self.visitChildren(ctx)
 
@@ -349,22 +277,6 @@ def main():
         init_icon = '✓' if h['inicializado'] else '✗'
         init_color = '#22f08a' if h['inicializado'] else '#ff4d6a'
 
-<<<<<<< HEAD
-    for nombre, datos in visitor.tabla_simbolos.items():
-        usos = ", ".join([f"(L{u['linea']},C{u['columna']})" for u in datos['usos']])
-        filas += f"""
-        <tr>
-            <td>{nombre}</td>
-            <td>{datos['tipo']}</td>
-            <td>{datos['categoria']}</td>
-            <td>{datos['ambito']}</td>
-            <td>{datos['valor']}</td>
-            <td>{datos['linea']}</td>
-            <td>{datos['columna']}</td>
-            <td>{usos}</td>
-        </tr>
-        """
-=======
         filas += f"""
         <tr style="background:{bg}">
             <td style="color:#22f08a;font-weight:600">{h['nombre']}</td>
@@ -378,7 +290,6 @@ def main():
             <td style="color:#7a9cc8;font-size:11px;text-align:center">{h['linea']}</td>
             <td style="color:#7a9cc8;font-size:11px;text-align:center">{h['columna']}</td>
         </tr>"""
->>>>>>> 50e67df (Enriquesiendo la tabla de simbolos)
 
     html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
 
