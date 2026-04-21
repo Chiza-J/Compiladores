@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_file
 import subprocess
 import os
 import zipfile
+import sys
 
 app = Flask(__name__)
 
@@ -11,7 +12,7 @@ RUTA_PROYECTO = os.path.dirname(os.path.abspath(__file__))
 
 def ejecutar(script):
     try:
-        python_path = os.path.join(RUTA_PROYECTO, 'venv', 'Scripts', 'python.exe')
+        python_path = sys.executable
 
         resultado = subprocess.run(
             [python_path, '-B', script],
