@@ -153,6 +153,8 @@ def descargar_todo():
         ruta_errores = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html')
         ruta_rec = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html')
         ruta_tabla = os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html')
+        ruta_cpp = os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.cpp')
+        ruta_c3d = os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.c3d')
 
         if os.path.exists(ruta_tokens):
             zipf.write(ruta_tokens, 'reportes/reporte_tokens.html')
@@ -162,9 +164,15 @@ def descargar_todo():
 
         if os.path.exists(ruta_rec):
             zipf.write(ruta_rec, 'reportes/reporte_recuperables.html')
-        
+
         if os.path.exists(ruta_tabla):
             zipf.write(ruta_tabla, 'reportes/tabla_simbolos.html')
+
+        if os.path.exists(ruta_cpp):
+            zipf.write(ruta_cpp, 'reportes/salida.cpp')
+
+        if os.path.exists(ruta_c3d):
+            zipf.write(ruta_c3d, 'reportes/salida.c3d')
 
     return send_file(ruta_zip, as_attachment=True)
 
