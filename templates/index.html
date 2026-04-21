@@ -188,6 +188,8 @@
     .btn-errores  { border-left: 2px solid var(--accent-red) !important; }
     .btn-recup    { border-left: 2px solid var(--accent-amber) !important; }
     .btn-tabla    { border-left: 2px solid var(--accent-cyan) !important; }
+    .btn-c3d   .btn-icon { background: rgba(168,85,247,0.12); color: var(--accent-purple); }
+    .btn-c3d   { border-left: 2px solid var(--accent-purple) !important; }
     
     /* ─── MAIN AREA ─── */
     .main {
@@ -408,6 +410,7 @@
       const [analyzing, setAnalyzing]         = useState(false);
       const textareaRef = useRef(null);
       const fileInputRef = useRef(null);
+      const gutterRef   = useRef(null);
 
       // Line numbers
       const lineCount = code.split("\n").length;
@@ -685,8 +688,20 @@
               </span>
               Recuperables
             </button>
-          </div>
 
+            <button
+              className={`sidebar-btn btn-c3d ${activeTab === "c3d" ? "active" : ""}`}
+              onClick={() => cargar("/c3d", "c3d")}
+            >
+              <span className="btn-icon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </span>
+              Código C3D
+            </button>
+          </div>
+          
           {/* ── MAIN ── */}
             <div className="main">
 
@@ -694,7 +709,7 @@
             <div className="editor-pane">
             <div className="pane-label">Editor de código</div>
             <div className="editor-wrap">
-            <div className="editor-gutter">
+            <div className="editor-gutter" ref={gutterRef}>
                 {lines.map(n => (
             <div key={n} className="line-num">{n}</div>
         ))}
@@ -707,6 +722,11 @@
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleTab}
+            onScroll={() => {
+              if (gutterRef.current && textareaRef.current) {
+                gutterRef.current.scrollTop = textareaRef.current.scrollTop;
+                }
+            }}
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"

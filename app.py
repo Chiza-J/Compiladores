@@ -53,7 +53,8 @@ def analizar():
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_tokens.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html'),
-        os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html')
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_c3d.html')
     ]
 
     for ruta in rutas_reportes:
@@ -66,6 +67,7 @@ def analizar():
     ruta_rec = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_recuperables.py')
     ruta_semantico = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'reporte_semantico.py')
     ruta_tabla = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'tabla_simbolos.py')
+    ruta_c3d = os.path.join(RUTA_PROYECTO, 'static', 'reportes_html', 'generar_c3d.py')
 
 
     salida_tokens = ejecutar(ruta_tokens)
@@ -73,6 +75,7 @@ def analizar():
     salida_rec = ejecutar(ruta_rec)
     salida_semantico = ejecutar(ruta_semantico)
     salida_tabla = ejecutar(ruta_tabla)
+    salida_c3d  = ejecutar(ruta_c3d)
 
     salida = f"""
 ================= ANALIZADOR =================
@@ -91,6 +94,9 @@ def analizar():
 
  TABLA DE SÍMBOLOS:
 {salida_tabla}
+
+CÓDIGO 3 DIRECCIONES:
+{salida_c3d}
 
 ==============================================
 """
@@ -193,6 +199,14 @@ def ver_tabla_simbolos():
     if os.path.exists(ruta):
         return send_file(ruta)
 
+    return send_file(base)
+
+@app.route('/c3d')
+def ver_c3d():
+    ruta = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_c3d.html')
+    base = os.path.join(RUTA_PROYECTO, 'reportes_html', 'c3d_base.html')
+    if os.path.exists(ruta):
+        return send_file(ruta)
     return send_file(base)
 
 if __name__ == '__main__':
