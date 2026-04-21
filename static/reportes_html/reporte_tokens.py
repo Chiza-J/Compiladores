@@ -52,6 +52,35 @@ def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
     siguiente = lexer.nextToken()
     procesar_tokens_recursivo(lexer, siguiente, lista, errores_lexicos)
 
+def obtener_equivalente(tipo, lexema):
+    equivalencias = {
+        "PRINCIPAL": "int main",
+        "WI": "if",
+        "OTRE": "else",
+        "PENDAN": "while",
+        "RETUR": "return",
+        "ONTIE": "int",
+        "FLOTE": "float",
+        "DUBLE": "double",
+        "AMPRIMI": "printf",
+        "IGUAL": "=",
+        "PUNTOCOMA": ";",
+        "PARENTESIS_ABIERTO": "(",
+        "PARENTESIS_CERRADO": ")",
+        "LLAVE_ABIERTA": "{",
+        "LLAVE_CERRADA": "}",
+        "OP": "operador"
+    }
+
+    # Si es palabra reservada
+    if tipo in equivalencias:
+        return equivalencias[tipo]
+
+    # Si es identificador o número, se deja igual
+    if tipo in ["ID", "INT", "FLOAT_LIT"]:
+        return lexema
+
+    return ""
 
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
@@ -103,12 +132,15 @@ def main():
     filas = ""
 
     for t in tokens_lista:
+        equivalente = obtener_equivalente(t['tipo'], t['lexema'])
+
         filas += f"""
         <tr>
             <td>{t['tipo']}</td>
             <td>{t['lexema']}</td>
             <td>{t['linea']}</td>
             <td>{t['columna']}</td>
+            <td>{equivalente}</td>
         </tr>
         """
 
