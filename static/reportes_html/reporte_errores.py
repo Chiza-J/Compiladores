@@ -9,9 +9,10 @@ from antlr4 import *
 from antlr_todo.LenguajeLexer import LenguajeLexer
 from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
+from antlr_todo.AnalizadorSemantico import AnalizadorSemantico
 
 
-#VOCABULARIO 
+# VOCABULARIO
 VOCABULARIO = [
     "ontie", "flote", "duble",
     "wi", "otre", "pendan", "retur",
@@ -56,8 +57,6 @@ def obtener_tokens(lexer):
                 "columna": token.column,
                 "lexema": token.text,
                 "tipo": tipo
-                
-                
             })
 
         token = lexer.nextToken()
@@ -70,14 +69,13 @@ def main():
 
     archivo = os.path.join(ruta_raiz, "programa.leng")
 
+    # ── Errores léxicos ──────────────────────────────────────────────
     input_stream = FileStream(archivo)
     lexer = LenguajeLexer(input_stream)
-
     tokens = obtener_tokens(lexer)
-
-    # 🔥 SOLO errores reales
     errores_lexicos = [t for t in tokens if t["tipo"] == "ERROR_CHAR"]
 
+    # ── Errores sintácticos ──────────────────────────────────────────
     input_stream2 = FileStream(archivo)
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
@@ -90,37 +88,62 @@ def main():
 
     errores_sintacticos = listener.errores
 
-    # SI NO HAY ERRORES, IGUAL GENERAR REPORTE VACÍO
-    if not errores_lexicos and not errores_sintacticos:
-        filas = """
-        <tr>
-            <td colspan="4">Sin errores</td>
-        </tr>
-        """
-    else:
-        filas = ""
+    # ── Errores semánticos ───────────────────────────────────────────
+    input_stream3 = FileStream(archivo, encoding="utf-8")
+    lexer3 = LenguajeLexer(input_stream3)
+    stream3 = CommonTokenStream(lexer3)
+    parser3 = LenguajeParser(stream3)
+    parser3.removeErrorListeners()
+    tree = parser3.programa()
 
+    semantico = AnalizadorSemantico()
+    semantico.visit(tree)
+    errores_semanticos = semantico.errores
+
+    # ── Construir filas HTML por pestaña ─────────────────────────────
+    def filas_lexicos():
+        if not errores_lexicos:
+            return ""
+        html = ""
         for e in errores_lexicos:
-            filas += f"""
+            html += f"""
             <tr>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
                 <td>{e['lexema']}</td>
                 <td>Léxico</td>
-            </tr>
-            """
+            </tr>"""
+        return html
 
+    def filas_sintacticos():
+        if not errores_sintacticos:
+            return ""
+        html = ""
         for e in errores_sintacticos:
-            filas += f"""
+            html += f"""
             <tr>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
                 <td>{e['mensaje']}</td>
-                <td>Sintactico</td>
-            </tr>
-            """
+                <td>Sintáctico</td>
+            </tr>"""
+        return html
 
-    #LLAMA LA BASE DE HTML LA INTERFAZ BONITA
+    def filas_semanticos():
+        if not errores_semanticos:
+            return ""
+        html = ""
+        for e in errores_semanticos:
+            html += f"""
+            <tr>
+                <td>{e['linea']}</td>
+                <td>{e['columna']}</td>
+                <td>{e['mensaje']}</td>
+                <td>{e['tipo']}</td>
+            </tr>"""
+        return html
+
+    # ── Cargar base HTML ─────────────────────────────────────────────
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
 
     if not os.path.exists(ruta_base):
@@ -130,45 +153,27 @@ def main():
     with open(ruta_base, "r", encoding="utf-8") as f:
         html = f.read()
 
-    filas = ""
+    # Inyectar filas en cada tbody de cada pestaña
+    html = html.replace('<tbody id="tbody-lexico">',
+                        f'<tbody id="tbody-lexico">{filas_lexicos()}')
+    html = html.replace('<tbody id="tbody-sintactico">',
+                        f'<tbody id="tbody-sintactico">{filas_sintacticos()}')
+    html = html.replace('<tbody id="tbody-semantico">',
+                        f'<tbody id="tbody-semantico">{filas_semanticos()}')
 
-    # ERRORES LÉXICOS
-    for e in errores_lexicos:
-        filas += f"""
-        <tr>
-            <td>{e['linea']}</td>
-            <td>{e['columna']}</td>
-            <td>{e['lexema']}</td>
-            <td>Léxico</td>
-        </tr>
-        """
-
-    # ERRORES SINTÁCTICOS
-    for e in errores_sintacticos:
-        filas += f"""
-        <tr>
-            <td>{e['linea']}</td>
-            <td>{e['columna']}</td>
-            <td>{e['mensaje']}</td>
-            <td>Sintactico</td>
-        </tr>
-        """
-
-    html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
-
+    # ── Guardar reporte final ────────────────────────────────────────
     salida = os.path.join(ruta_raiz, "reportes_html", "reporte_errores.html")
-
     with open(salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    total_errores = len(errores_lexicos) + len(errores_sintacticos)
+    total = len(errores_lexicos) + len(errores_sintacticos) + len(errores_semanticos)
 
-    if total_errores == 0:
+    if total == 0:
         print("Sin errores")
-    elif total_errores == 1:
+    elif total == 1:
         print("1 error encontrado")
     else:
-        print(f"{total_errores} errores encontrados")
+        print(f"{total} errores encontrados")
 
 
 if __name__ == "__main__":
