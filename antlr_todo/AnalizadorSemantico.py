@@ -6,7 +6,7 @@ from antlr_todo.LenguajeVisitor import LenguajeVisitor
 class AnalizadorSemantico(LenguajeVisitor):
 
     def __init__(self):
-        # Tabla de simbolos: nombre -> tipo  ('ontie', 'flote', 'duble', 'shen')
+        # Tabla de simbolos: nombre -> tipo
         self.tabla_simbolos = {}
         self.errores = []
 
@@ -33,169 +33,214 @@ class AnalizadorSemantico(LenguajeVisitor):
 
     # ------------------------------------------------------------------ #
     #  DECLARACION
-    #  ontie x iyal 5 puavir
-    #  flote x iyal 3.14 puavir
-    #  duble x iyal 3.14 puavir
-    #  shen x iyal "hola" puavir
     # ------------------------------------------------------------------ #
-    def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
+    def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
-        linea  = ctx.ID().getSymbol().line
-        col    = ctx.ID().getSymbol().column
 
-        # Determinar tipo por el token inicial
+        if nombre in self.tabla_simbolos:
+            self.errores.append(f"Variable '{nombre}' ya declarada")
+            return
+
         if ctx.ONTIE():
             tipo = 'ontie'
+            tipo_expr = self.obtener_tipo_expr(ctx.expr_entera())
+
         elif ctx.FLOTE():
             tipo = 'flote'
+            tipo_expr = self.obtener_tipo_expr(ctx.expr_decimal())
+
+        elif ctx.DUBLE():
+            tipo = 'duble'
+            tipo_expr = self.obtener_tipo_expr(ctx.expr_decimal())
+
         elif ctx.SHEN():
             tipo = 'shen'
-        else:
-            tipo = 'duble'
+            tipo_expr = self.obtener_tipo_expr(ctx.expr_string())
 
-        # Variable ya declarada
-        if nombre in self.tabla_simbolos:
-            self.errores.append({
-                "linea":   linea,
-                "columna": col,
-                "mensaje": f"Variable '{nombre}' ya fue declarada anteriormente",
-                "tipo":    "Semantico"
-            })
-        else:
-            self.tabla_simbolos[nombre] = tipo
+        # Validación de tipos
+        if tipo == 'ontie' and tipo_expr != 'ontie':
+            self.errores.append(f"No se puede asignar {tipo_expr} a ontie")
 
-        return self.visitChildren(ctx)
+        elif tipo == 'flote' and tipo_expr not in ['ontie', 'flote']:
+            self.errores.append(f"No se puede asignar {tipo_expr} a flote")
+
+        elif tipo == 'duble' and tipo_expr not in ['ontie', 'flote', 'duble']:
+            self.errores.append(f"No se puede asignar {tipo_expr} a duble")
+
+        elif tipo == 'shen' and tipo_expr != 'shen':
+            self.errores.append(f"No se puede asignar {tipo_expr} a shen")
+
+        self.tabla_simbolos[nombre] = tipo
 
     # ------------------------------------------------------------------ #
     #  ASIGNACION
-    #  x iyal expr puavir
     # ------------------------------------------------------------------ #
-    def visitAsignacion(self, ctx: LenguajeParser.AsignacionContext):
+    def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
-        linea  = ctx.ID().getSymbol().line
-        col    = ctx.ID().getSymbol().column
 
         if nombre not in self.tabla_simbolos:
-            self.errores.append({
-                "linea":   linea,
-                "columna": col,
-                "mensaje": f"Variable '{nombre}' usada sin declarar",
-                "tipo":    "Semantico"
-            })
+            self.errores.append(f"Variable '{nombre}' no declarada")
+            return
 
-        return self.visitChildren(ctx)
+        tipo_var = self.tabla_simbolos[nombre]
+        tipo_expr = self.obtener_tipo_expr(ctx.expr())
+
+        if tipo_var == 'shen' and tipo_expr != 'shen':
+            self.errores.append("Asignación inválida a string")
+
+        elif tipo_var != 'shen' and tipo_expr == 'shen':
+            self.errores.append("No se puede asignar string a tipo numérico")
+
+        elif tipo_var == 'ontie' and tipo_expr != 'ontie':
+            self.errores.append("ontie solo acepta enteros")
+
+        elif tipo_var == 'flote' and tipo_expr not in ['ontie', 'flote']:
+            self.errores.append("flote solo acepta números")
+
+        elif tipo_var == 'duble' and tipo_expr not in ['ontie', 'flote', 'duble']:
+            self.errores.append("duble solo acepta números")
 
     # ------------------------------------------------------------------ #
     #  IMPRESION
-    #  amprimi(expr) puavir
     # ------------------------------------------------------------------ #
     def visitImpresion(self, ctx: LenguajeParser.ImpresionContext):
+        self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
     # ------------------------------------------------------------------ #
     #  CONDICION IF
     # ------------------------------------------------------------------ #
     def visitCondicion_if(self, ctx: LenguajeParser.Condicion_ifContext):
+        self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
     # ------------------------------------------------------------------ #
     #  CICLO WHILE
     # ------------------------------------------------------------------ #
     def visitCiclo_while(self, ctx: LenguajeParser.Ciclo_whileContext):
+        self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
     # ------------------------------------------------------------------ #
     #  RETORNO
     # ------------------------------------------------------------------ #
     def visitRetorno(self, ctx: LenguajeParser.RetornoContext):
+        if ctx.expr():
+            self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
     # ------------------------------------------------------------------ #
-    #  EXPRESIONES — verifica que los IDs usados estén declarados
+    #  EXPRESIONES
     # ------------------------------------------------------------------ #
-    def visitExpr(self, ctx: LenguajeParser.ExprContext):
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            linea  = ctx.ID().getSymbol().line
-            col    = ctx.ID().getSymbol().column
-            if nombre not in self.tabla_simbolos:
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semantico"
-                })
+
+    def visitExpr(self, ctx):
+        self.obtener_tipo_expr(ctx)
         return self.visitChildren(ctx)
 
-    def visitExpr_entera(self, ctx: LenguajeParser.Expr_enteraContext):
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            linea  = ctx.ID().getSymbol().line
-            col    = ctx.ID().getSymbol().column
-            if nombre not in self.tabla_simbolos:
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semantico"
-                })
-            elif self.tabla_simbolos[nombre] not in ('ontie',):
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba 'ontie'",
-                    "tipo":    "Semantico"
-                })
+    def visitExpr_entera(self, ctx):
+        self.obtener_tipo_expr(ctx)
         return self.visitChildren(ctx)
 
-    def visitExpr_decimal(self, ctx: LenguajeParser.Expr_decimalContext):
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            linea  = ctx.ID().getSymbol().line
-            col    = ctx.ID().getSymbol().column
-            if nombre not in self.tabla_simbolos:
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semantico"
-                })
-            elif self.tabla_simbolos[nombre] not in ('flote', 'duble', 'ontie'):
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba tipo numerico",
-                    "tipo":    "Semantico"
-                })
+    def visitExpr_decimal(self, ctx):
+        self.obtener_tipo_expr(ctx)
+        return self.visitChildren(ctx)
+
+    def visitExpr_string(self, ctx):
+        self.obtener_tipo_expr(ctx)
         return self.visitChildren(ctx)
 
     # ------------------------------------------------------------------ #
-    #  EXPR_CADENA — valida que el ID sea de tipo shen
-    #  shen x iyal "hola" puavir
+    #  FUNCION CENTRAL DE TIPOS
     # ------------------------------------------------------------------ #
-    def visitExpr_cadena(self, ctx: LenguajeParser.Expr_cadenaContext):
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            linea  = ctx.ID().getSymbol().line
-            col    = ctx.ID().getSymbol().column
-            if nombre not in self.tabla_simbolos:
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semantico"
-                })
-            elif self.tabla_simbolos[nombre] != 'shen':
-                self.errores.append({
-                    "linea":   linea,
-                    "columna": col,
-                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba 'shen'",
-                    "tipo":    "Semantico"
-                })
-        return self.visitChildren(ctx)
+    def obtener_tipo_expr(self, ctx):
 
-    def visitTipo(self, ctx: LenguajeParser.TipoContext):
-        return self.visitChildren(ctx)
+        # 🔹 expr general
+        if isinstance(ctx, LenguajeParser.ExprContext):
 
-    def visitErrorInstr(self, ctx: LenguajeParser.ErrorInstrContext):
-        return self.visitChildren(ctx)
+            if ctx.INT():
+                return 'ontie'
+
+            if ctx.FLOAT_LIT():
+                return 'flote'
+
+            if ctx.STRING():
+                return 'shen'
+
+            if ctx.ID():
+                nombre = ctx.ID().getText()
+                if nombre not in self.tabla_simbolos:
+                    self.errores.append(f"Variable '{nombre}' no declarada")
+                    return 'error'
+                return self.tabla_simbolos[nombre]
+
+            if ctx.getChildCount() == 3:
+                t1 = self.obtener_tipo_expr(ctx.expr(0))
+                t2 = self.obtener_tipo_expr(ctx.expr(1))
+                op = ctx.getChild(1).getText()
+
+                # STRING
+                if t1 == 'shen' or t2 == 'shen':
+                    if op == 'plu' and t1 == 'shen' and t2 == 'shen':
+                        return 'shen'
+                    self.errores.append(f"No se puede usar '{op}' con strings")
+                    return 'error'
+
+                # NUMÉRICO
+                if t1 == 'duble' or t2 == 'duble':
+                    return 'duble'
+                if t1 == 'flote' or t2 == 'flote':
+                    return 'flote'
+                return 'ontie'
+
+        # 🔹 expr_entera
+        elif isinstance(ctx, LenguajeParser.Expr_enteraContext):
+
+            if ctx.INT():
+                return 'ontie'
+
+            if ctx.ID():
+                nombre = ctx.ID().getText()
+                if nombre not in self.tabla_simbolos:
+                    self.errores.append(f"Variable '{nombre}' no declarada")
+                    return 'error'
+                return self.tabla_simbolos[nombre]
+
+            if ctx.getChildCount() == 3:
+                return 'ontie'
+
+        # 🔹 expr_decimal
+        elif isinstance(ctx, LenguajeParser.Expr_decimalContext):
+
+            if ctx.FLOAT_LIT():
+                return 'flote'
+
+            if ctx.INT():
+                return 'ontie'
+
+            if ctx.ID():
+                nombre = ctx.ID().getText()
+                if nombre not in self.tabla_simbolos:
+                    self.errores.append(f"Variable '{nombre}' no declarada")
+                    return 'error'
+                return self.tabla_simbolos[nombre]
+
+            if ctx.getChildCount() == 3:
+                return 'flote'
+
+        # 🔹 expr_string
+        elif isinstance(ctx, LenguajeParser.Expr_stringContext):
+
+            if ctx.STRING():
+                return 'shen'
+
+            if ctx.ID():
+                nombre = ctx.ID().getText()
+                if nombre not in self.tabla_simbolos:
+                    self.errores.append(f"Variable '{nombre}' no declarada")
+                    return 'error'
+                return self.tabla_simbolos[nombre]
+
+            if ctx.getChildCount() == 3:
+                return 'shen'
+
+        return 'error'
