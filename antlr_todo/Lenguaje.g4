@@ -35,6 +35,7 @@ declaracion
     : ONTIE ID IGUAL expr_entera PUNTOCOMA   // ontie solo acepta enteros
     | FLOTE ID IGUAL expr_decimal PUNTOCOMA  // flote acepta enteros o decimales
     | DUBLE ID IGUAL expr_decimal PUNTOCOMA  // duble acepta enteros o decimales
+    | SHEN ID IGUAL expr_cadena PUNTOCOMA // shen para acerptar CHAR
     ;
 
 //  Asignacion x = 5;
@@ -72,6 +73,7 @@ expr
     : <assoc=left> expr OP expr
     | INT
     | FLOAT_LIT
+    | STRING
     | ID
     ;
 
@@ -90,8 +92,14 @@ expr_decimal
     | ID
     ;
 
+// Solo strings
+expr_cadena
+    : STRING
+    | ID
+    ;
+
 // Tipos de datos del lenguaje
-tipo : ONTIE | FLOTE | DUBLE;
+tipo : ONTIE | FLOTE | DUBLE | SHEN;
 
 // Manejo de error sintactico
 errorInstr : ERROR_CHAR+;
@@ -119,6 +127,7 @@ RETUR : 'retur';
 ONTIE    : 'ontie'; // enteros
 FLOTE    : 'flote'; //flotantes
 DUBLE    : 'duble'; //decimales
+SHEN     : 'shen';
 
 //      Funiones
 AMPRIMI  : 'amprimi'; //print
@@ -144,6 +153,9 @@ INT : [0-9]+;
 // token para números decimales/flotantes (ej: 3.14, 0.5, 2.0)
 // Se define ANTES de INT para que ANTLR lo reconozca con mayor prioridad cuando hay punto decimal
 FLOAT_LIT : [0-9]+ '.' [0-9]+;
+
+//tipo STRING
+STRING    : '"' ~["\r\n]* '"';
 
 // IGNORAR ESPACIOS
 WS : [ \t\r\n]+ -> skip;

@@ -74,6 +74,11 @@ class LenguajeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by LenguajeParser#expr_cadena.
+    def visitExpr_cadena(self, ctx:LenguajeParser.Expr_cadenaContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by LenguajeParser#tipo.
     def visitTipo(self, ctx:LenguajeParser.TipoContext):
         return self.visitChildren(ctx)

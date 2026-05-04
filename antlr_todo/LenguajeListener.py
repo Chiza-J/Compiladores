@@ -125,6 +125,15 @@ class LenguajeListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LenguajeParser#expr_cadena.
+    def enterExpr_cadena(self, ctx:LenguajeParser.Expr_cadenaContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#expr_cadena.
+    def exitExpr_cadena(self, ctx:LenguajeParser.Expr_cadenaContext):
+        pass
+
+
     # Enter a parse tree produced by LenguajeParser#tipo.
     def enterTipo(self, ctx:LenguajeParser.TipoContext):
         pass
