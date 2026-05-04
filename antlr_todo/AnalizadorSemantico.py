@@ -6,7 +6,7 @@ from antlr_todo.LenguajeVisitor import LenguajeVisitor
 class AnalizadorSemantico(LenguajeVisitor):
 
     def __init__(self):
-        # Tabla de simbolos: nombre -> tipo  ('ontie', 'flote', 'duble')
+        # Tabla de simbolos: nombre -> tipo  ('ontie', 'flote', 'duble', 'shen')
         self.tabla_simbolos = {}
         self.errores = []
 
@@ -36,6 +36,7 @@ class AnalizadorSemantico(LenguajeVisitor):
     #  ontie x iyal 5 puavir
     #  flote x iyal 3.14 puavir
     #  duble x iyal 3.14 puavir
+    #  shen x iyal "hola" puavir
     # ------------------------------------------------------------------ #
     def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
         nombre = ctx.ID().getText()
@@ -47,6 +48,8 @@ class AnalizadorSemantico(LenguajeVisitor):
             tipo = 'ontie'
         elif ctx.FLOTE():
             tipo = 'flote'
+        elif ctx.SHEN():
+            tipo = 'shen'
         else:
             tipo = 'duble'
 
@@ -56,7 +59,7 @@ class AnalizadorSemantico(LenguajeVisitor):
                 "linea":   linea,
                 "columna": col,
                 "mensaje": f"Variable '{nombre}' ya fue declarada anteriormente",
-                "tipo":    "Semántico"
+                "tipo":    "Semantico"
             })
         else:
             self.tabla_simbolos[nombre] = tipo
@@ -77,7 +80,7 @@ class AnalizadorSemantico(LenguajeVisitor):
                 "linea":   linea,
                 "columna": col,
                 "mensaje": f"Variable '{nombre}' usada sin declarar",
-                "tipo":    "Semántico"
+                "tipo":    "Semantico"
             })
 
         return self.visitChildren(ctx)
@@ -120,7 +123,7 @@ class AnalizadorSemantico(LenguajeVisitor):
                     "linea":   linea,
                     "columna": col,
                     "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semántico"
+                    "tipo":    "Semantico"
                 })
         return self.visitChildren(ctx)
 
@@ -134,14 +137,14 @@ class AnalizadorSemantico(LenguajeVisitor):
                     "linea":   linea,
                     "columna": col,
                     "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semántico"
+                    "tipo":    "Semantico"
                 })
             elif self.tabla_simbolos[nombre] not in ('ontie',):
                 self.errores.append({
                     "linea":   linea,
                     "columna": col,
                     "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba 'ontie'",
-                    "tipo":    "Semántico"
+                    "tipo":    "Semantico"
                 })
         return self.visitChildren(ctx)
 
@@ -155,14 +158,39 @@ class AnalizadorSemantico(LenguajeVisitor):
                     "linea":   linea,
                     "columna": col,
                     "mensaje": f"Variable '{nombre}' usada sin declarar",
-                    "tipo":    "Semántico"
+                    "tipo":    "Semantico"
                 })
             elif self.tabla_simbolos[nombre] not in ('flote', 'duble', 'ontie'):
                 self.errores.append({
                     "linea":   linea,
                     "columna": col,
-                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba tipo numérico",
-                    "tipo":    "Semántico"
+                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba tipo numerico",
+                    "tipo":    "Semantico"
+                })
+        return self.visitChildren(ctx)
+
+    # ------------------------------------------------------------------ #
+    #  EXPR_CADENA — valida que el ID sea de tipo shen
+    #  shen x iyal "hola" puavir
+    # ------------------------------------------------------------------ #
+    def visitExpr_cadena(self, ctx: LenguajeParser.Expr_cadenaContext):
+        if ctx.ID():
+            nombre = ctx.ID().getText()
+            linea  = ctx.ID().getSymbol().line
+            col    = ctx.ID().getSymbol().column
+            if nombre not in self.tabla_simbolos:
+                self.errores.append({
+                    "linea":   linea,
+                    "columna": col,
+                    "mensaje": f"Variable '{nombre}' usada sin declarar",
+                    "tipo":    "Semantico"
+                })
+            elif self.tabla_simbolos[nombre] != 'shen':
+                self.errores.append({
+                    "linea":   linea,
+                    "columna": col,
+                    "mensaje": f"Variable '{nombre}' es de tipo '{self.tabla_simbolos[nombre]}' pero se esperaba 'shen'",
+                    "tipo":    "Semantico"
                 })
         return self.visitChildren(ctx)
 

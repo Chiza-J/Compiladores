@@ -168,7 +168,7 @@ def main():
         print("No se puede generar C3D (errores semánticos)")
         return
 
-    # generación C3D
+    # generación C3D1
     generador = C3DGenerador(semantico.tabla_simbolos)
     generador.visit(tree)
 
