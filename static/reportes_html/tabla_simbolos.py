@@ -18,38 +18,19 @@ class MiErrorListener(ErrorListener):
         self.hay_error = True
 
 
-# ─────────────────────────────────────────────────────────────
-#  Visitor completo de tabla de símbolos
-#
-#  Registra por cada evento:
-#    nombre, tipo, scope, evento, valor_inicial,
-#    inicializado, veces_asignada, veces_usada, linea, columna
-# ─────────────────────────────────────────────────────────────
 class TablaSimbolosVisitor(ParseTreeVisitor):
 
     def __init__(self):
-        # variables declaradas: nombre -> dict con toda la info
         self.tabla = {}
-
-        # historial de eventos en orden de aparición
         self.historial = []
-
-        # pila de scopes: 'global' es el nivel 0
-        # cada bloque anidado agrega un nivel
         self._scope_stack = ['global']
-
-        # contexto actual para saber si estamos dentro de if/while
         self._contexto = []
-
         self.errores = []
-
-    # ── helpers ──────────────────────────────────────────────
 
     def _scope_actual(self):
         return ' > '.join(self._scope_stack)
 
     def _nivel_scope(self):
-        # 0 = global, 1+ = local/bloque
         return len(self._scope_stack) - 1
 
     def _scope_legible(self):
@@ -75,11 +56,9 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
             'columna':       col,
         })
 
-    # ── programa (nivel raíz) ─────────────────────────────────
     def visitPrograma(self, ctx):
         return self.visitChildren(ctx)
 
-    # ── bloque: empuja y saca scope ───────────────────────────
     def visitBloque(self, ctx):
         ctx_nombre = self._contexto[-1] if self._contexto else 'bloque'
         self._scope_stack.append(ctx_nombre)
@@ -87,24 +66,31 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         self._scope_stack.pop()
         return None
 
-    # ── declaración: ontie/flote/duble x iyal expr ───────────
+    # ── declaración: ontie/flote/duble/shen x iyal expr ──────
     def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
+        # ← detectar tipo incluyendo shen
         if ctx.ONTIE():
             tipo = 'ontie'
         elif ctx.FLOTE():
             tipo = 'flote'
+        elif ctx.SHEN():           # ← NUEVO
+            tipo = 'shen'
         else:
             tipo = 'duble'
 
-        # extraer valor inicial como texto
+        # ← extraer valor inicial según el tipo de expresión
         if ctx.expr_entera():
             valor_txt = ctx.expr_entera().getText()
-        else:
+        elif ctx.expr_decimal():
             valor_txt = ctx.expr_decimal().getText()
+        elif ctx.expr_string():    # ← NUEVO
+            valor_txt = ctx.expr_string().getText()
+        else:
+            valor_txt = '—'
 
         if nombre in self.tabla:
             self.errores.append({
@@ -114,8 +100,8 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
             })
             return self.visitChildren(ctx)
 
-        scope   = self._scope_legible()
-        nivel   = self._nivel_scope()
+        scope = self._scope_legible()
+        nivel = self._nivel_scope()
 
         self.tabla[nombre] = {
             'tipo':           tipo,
@@ -129,50 +115,46 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         }
 
         self._agregar_evento(nombre, 'declaracion', linea, col, valor=valor_txt)
-
-        # visitar la expresión para registrar usos dentro del valor inicial
         return self.visitChildren(ctx)
 
-    # ── asignación: x iyal expr ───────────────────────────────
+    # ── asignación: x iyal expr / expr_string ────────────────
     def visitAsignacion(self, ctx: LenguajeParser.AsignacionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
-        valor_txt = ctx.expr().getText()
+        # ← tomar texto correcto si es string o numérico
+        if ctx.expr_string():      # ← NUEVO
+            valor_txt = ctx.expr_string().getText()
+        else:
+            valor_txt = ctx.expr().getText()
 
         if nombre in self.tabla:
             self.tabla[nombre]['veces_asignada'] += 1
             self._agregar_evento(nombre, 'asignacion', linea, col, valor=valor_txt)
         else:
-            # variable no declarada — el semántico ya lo reporta
             self._agregar_evento(nombre, 'asignacion (no declarada)', linea, col, valor=valor_txt)
 
         return self.visitChildren(ctx)
 
-    # ── condición if ─────────────────────────────────────────
     def visitCondicion_if(self, ctx: LenguajeParser.Condicion_ifContext):
         self._contexto.append('if')
         self.visitChildren(ctx)
         self._contexto.pop()
         return None
 
-    # ── ciclo while ──────────────────────────────────────────
     def visitCiclo_while(self, ctx: LenguajeParser.Ciclo_whileContext):
         self._contexto.append('while')
         self.visitChildren(ctx)
         self._contexto.pop()
         return None
 
-    # ── impresión: amprimi(expr) ──────────────────────────────
     def visitImpresion(self, ctx: LenguajeParser.ImpresionContext):
         return self.visitChildren(ctx)
 
-    # ── retorno ───────────────────────────────────────────────
     def visitRetorno(self, ctx: LenguajeParser.RetornoContext):
         return self.visitChildren(ctx)
 
-    # ── uso en expr general ───────────────────────────────────
     def visitExpr(self, ctx: LenguajeParser.ExprContext):
         if ctx.ID():
             nombre = ctx.ID().getText()
@@ -183,7 +165,6 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
                 self._agregar_evento(nombre, 'uso', linea, col)
         return self.visitChildren(ctx)
 
-    # ── uso en expr_entera ────────────────────────────────────
     def visitExpr_entera(self, ctx: LenguajeParser.Expr_enteraContext):
         if ctx.ID():
             nombre = ctx.ID().getText()
@@ -194,8 +175,18 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
                 self._agregar_evento(nombre, 'uso', linea, col)
         return self.visitChildren(ctx)
 
-    # ── uso en expr_decimal ───────────────────────────────────
     def visitExpr_decimal(self, ctx: LenguajeParser.Expr_decimalContext):
+        if ctx.ID():
+            nombre = ctx.ID().getText()
+            linea  = ctx.ID().getSymbol().line
+            col    = ctx.ID().getSymbol().column
+            if nombre in self.tabla:
+                self.tabla[nombre]['veces_usada'] += 1
+                self._agregar_evento(nombre, 'uso', linea, col)
+        return self.visitChildren(ctx)
+
+    # ── uso en expr_string ────────────────────────────────────  ← NUEVO
+    def visitExpr_string(self, ctx: LenguajeParser.Expr_stringContext):
         if ctx.ID():
             nombre = ctx.ID().getText()
             linea  = ctx.ID().getSymbol().line
@@ -248,33 +239,29 @@ def main():
     with open(ruta_base, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # ── colores y estilos por evento ──────────────────────────
     EVENTO_STYLE = {
-        'declaracion':            ('#22f08a', ''),
-        'asignacion':             ('#00d4ff', ''),
-        'uso':                    ('#f5a623', ''),
+        'declaracion':               ('#22f08a', ''),
+        'asignacion':                ('#00d4ff', ''),
+        'uso':                       ('#f5a623', ''),
         'asignacion (no declarada)': ('#ff4d6a', ''),
     }
 
-    SCOPE_COLOR = {
-        'global': '#a855f7',
-    }
-
+    # ← shen añadido con color púrpura
     TIPO_COLOR = {
         'ontie': '#4f8ef7',
         'flote': '#00d4ff',
         'duble': '#22f08a',
+        'shen':  '#a855f7',    # ← NUEVO
     }
 
     filas = ''
     for i, h in enumerate(visitor.historial):
-        color_ev, icono = EVENTO_STYLE.get(h['evento'], ('#c8d8f8', '·'))
+        color_ev, _ = EVENTO_STYLE.get(h['evento'], ('#c8d8f8', ''))
         color_tipo  = TIPO_COLOR.get(h['tipo'], '#c8d8f8')
         color_scope = '#a855f7' if h['nivel'] == 0 else '#f5a623'
         bg = '#0d1225' if i % 2 == 0 else '#090d1a'
 
-        # indicador de inicialización
-        init_icon = 'Si' if h['inicializado'] else 'No'
+        init_icon  = 'Si' if h['inicializado'] else 'No'
         init_color = '#22f08a' if h['inicializado'] else '#ff4d6a'
 
         filas += f"""
@@ -296,7 +283,7 @@ def main():
     with open(ruta_salida, 'w', encoding='utf-8') as f:
         f.write(html)
 
-    total_vars   = len(visitor.tabla)
+    total_vars    = len(visitor.tabla)
     total_eventos = len(visitor.historial)
 
     if total_vars == 0:

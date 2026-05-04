@@ -35,7 +35,7 @@ declaracion
     : ONTIE ID IGUAL expr_entera PUNTOCOMA   // ontie solo acepta enteros
     | FLOTE ID IGUAL expr_decimal PUNTOCOMA  // flote acepta enteros o decimales
     | DUBLE ID IGUAL expr_decimal PUNTOCOMA  // duble acepta enteros o decimales
-    | SHEN ID IGUAL expr_cadena PUNTOCOMA // shen para acerptar CHAR
+    | SHEN ID IGUAL expr_string PUNTOCOMA // shen para acerptar CHAR
     ;
 
 //  Asignacion x = 5;
@@ -93,7 +93,7 @@ expr_decimal
     ;
 
 // Solo strings
-expr_cadena
+expr_string
     : STRING
     | ID
     ;

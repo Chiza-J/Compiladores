@@ -68,7 +68,7 @@ retorno
 expr
 expr_entera
 expr_decimal
-expr_cadena
+expr_string
 tipo
 errorInstr
 

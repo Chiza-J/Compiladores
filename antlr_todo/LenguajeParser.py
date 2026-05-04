@@ -103,14 +103,14 @@ class LenguajeParser ( Parser ):
     RULE_expr = 10
     RULE_expr_entera = 11
     RULE_expr_decimal = 12
-    RULE_expr_cadena = 13
+    RULE_expr_string = 13
     RULE_tipo = 14
     RULE_errorInstr = 15
 
     ruleNames =  [ "programa", "bloque", "instrucciones", "instruccion", 
                    "declaracion", "asignacion", "impresion", "condicion_if", 
                    "ciclo_while", "retorno", "expr", "expr_entera", "expr_decimal", 
-                   "expr_cadena", "tipo", "errorInstr" ]
+                   "expr_string", "tipo", "errorInstr" ]
 
     EOF = Token.EOF
     PRINCIPAL=1
@@ -480,8 +480,8 @@ class LenguajeParser ( Parser ):
         def SHEN(self):
             return self.getToken(LenguajeParser.SHEN, 0)
 
-        def expr_cadena(self):
-            return self.getTypedRuleContext(LenguajeParser.Expr_cadenaContext,0)
+        def expr_string(self):
+            return self.getTypedRuleContext(LenguajeParser.Expr_stringContext,0)
 
 
         def getRuleIndex(self):
@@ -560,7 +560,7 @@ class LenguajeParser ( Parser ):
                 self.state = 77
                 self.match(LenguajeParser.IGUAL)
                 self.state = 78
-                self.expr_cadena()
+                self.expr_string()
                 self.state = 79
                 self.match(LenguajeParser.PUNTOCOMA)
                 pass
@@ -1239,7 +1239,7 @@ class LenguajeParser ( Parser ):
         return localctx
 
 
-    class Expr_cadenaContext(ParserRuleContext):
+    class Expr_stringContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1253,29 +1253,29 @@ class LenguajeParser ( Parser ):
             return self.getToken(LenguajeParser.ID, 0)
 
         def getRuleIndex(self):
-            return LenguajeParser.RULE_expr_cadena
+            return LenguajeParser.RULE_expr_string
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_cadena" ):
-                listener.enterExpr_cadena(self)
+            if hasattr( listener, "enterExpr_string" ):
+                listener.enterExpr_string(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_cadena" ):
-                listener.exitExpr_cadena(self)
+            if hasattr( listener, "exitExpr_string" ):
+                listener.exitExpr_string(self)
 
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_cadena" ):
-                return visitor.visitExpr_cadena(self)
+            if hasattr( visitor, "visitExpr_string" ):
+                return visitor.visitExpr_string(self)
             else:
                 return visitor.visitChildren(self)
 
 
 
 
-    def expr_cadena(self):
+    def expr_string(self):
 
-        localctx = LenguajeParser.Expr_cadenaContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 26, self.RULE_expr_cadena)
+        localctx = LenguajeParser.Expr_stringContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 26, self.RULE_expr_string)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
