@@ -10,7 +10,7 @@ from antlr_todo.LenguajeLexer import LenguajeLexer
 
 
 VOCABULARIO = [
-    "ontie", "flote", "duble",
+    "ontie", "flote", "duble", "shen",
     "wi", "otre", "pendan", "retur",
     "amprimi", "principal",
     "iyal", "puavir", "pasuvert", "pasferme", "cleuvert", "cleferme",
