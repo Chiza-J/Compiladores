@@ -14,7 +14,7 @@ from antlr_todo.AnalizadorSemantico import AnalizadorSemantico
 
 # VOCABULARIO
 VOCABULARIO = [
-    "ontie", "flote", "duble",
+    "ontie", "flote", "duble", "shen",
     "wi", "otre", "pendan", "retur",
     "amprimi", "principal",
     "iyal", "puavir", "pasuvert", "pasferme", "cleuvert", "cleferme",
