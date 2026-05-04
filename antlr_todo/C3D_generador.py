@@ -8,7 +8,7 @@ class C3DGenerador(LenguajeVisitor):
         self.codigo   = []          # líneas de código 3 direcciones
         self.temp_count = 0
         self.label_count = 0
-        self.tabla    = tabla_simbolos  # { nombre: 'ontie'|'flote'|'duble' }
+        self.tabla    = tabla_simbolos  # { nombre: 'ontie'|'flote'|'duble'|'shen' }
 
     # ─────────────────────────────────────────────
     #  Helpers
@@ -43,7 +43,7 @@ class C3DGenerador(LenguajeVisitor):
     #  Declaración:  ontie x iyal expr_entera puavir
     #                flote x iyal expr_decimal puavir
     #                duble x iyal expr_decimal puavir
-
+    #                shen  x iyal expr_string  puavir   ← NUEVO
 
     def visitDeclaracion(self, ctx):
         var = ctx.ID().getText()
@@ -53,8 +53,12 @@ class C3DGenerador(LenguajeVisitor):
 
         if ctx.expr_entera():
             value = self.visit(ctx.expr_entera())
-        else:
+        elif ctx.expr_decimal():
             value = self.visit(ctx.expr_decimal())
+        elif ctx.expr_string():                        # ← NUEVO
+            value = self.visit(ctx.expr_string())
+        else:
+            value = ctx.getText()
 
         self.emit(f"{var} = {value}")
 
@@ -66,13 +70,23 @@ class C3DGenerador(LenguajeVisitor):
         if var not in self.tabla:
             return
 
-        value = self.visit(ctx.expr())
+        # Si la variable es shen, visitar expr_string si existe
+        tipo = self.tabla.get(var, '')
+        if tipo == 'shen' and ctx.expr_string():       # ← NUEVO
+            value = self.visit(ctx.expr_string())
+        else:
+            value = self.visit(ctx.expr())
         self.emit(f"{var} = {value}")
 
     #  Impresión:  amprimi(expr) puavir
+    #  Funciona igual para números y strings — el traductor distingue
 
     def visitImpresion(self, ctx):
-        value = self.visit(ctx.expr())
+        # Soporta expr numérica o expr_string con la misma instrucción print
+        if ctx.expr_string():                          # ← NUEVO
+            value = self.visit(ctx.expr_string())
+        else:
+            value = self.visit(ctx.expr())
         self.emit(f"print {value}")
 
     #  Expresión general:
@@ -84,7 +98,6 @@ class C3DGenerador(LenguajeVisitor):
             return ctx.getText()
 
         # Nodo binario: expr OP expr
-        # getChild(1) es el token OP entre los dos expr
         left  = self.visit(ctx.expr(0))
         op    = ctx.getChild(1).getText()   # plu, moan, par, bag, minog, aye, compag
         right = self.visit(ctx.expr(1))
@@ -118,6 +131,22 @@ class C3DGenerador(LenguajeVisitor):
         left  = self.visit(ctx.expr_decimal(0))
         op    = ctx.getChild(1).getText()
         right = self.visit(ctx.expr_decimal(1))
+
+        temp = self.new_temp()
+        self.emit(f"{temp} = {left} {op} {right}")
+        return temp
+
+    #  Expresión string (NUEVO):
+    #    expr_string plu expr_string   |   STRING_LIT   |   ID
+
+    def visitExpr_string(self, ctx):                   # ← NUEVO MÉTODO
+        if ctx.getChildCount() == 1:
+            return ctx.getText()                       # STRING_LIT o ID
+
+        # Concatenación:  expr_string plu expr_string
+        left  = self.visit(ctx.expr_string(0))
+        op    = ctx.getChild(1).getText()              # 'plu'
+        right = self.visit(ctx.expr_string(1))
 
         temp = self.new_temp()
         self.emit(f"{temp} = {left} {op} {right}")
@@ -195,7 +224,7 @@ class C3DAC_Traductor:
     a un archivo C++ válido y compilable con g++.
 
     Operadores del lenguaje → C++:
-        plu   →  +
+        plu   →  +  (números) / strcat (strings)
         moan  →  -
         par   →  *
         bag   →  /
@@ -215,40 +244,44 @@ class C3DAC_Traductor:
     }
 
     def __init__(self, codigo_c3d: list, tabla_simbolos: dict):
-        self.lineas  = codigo_c3d       # lista de strings del C3D
-        self.tabla   = tabla_simbolos   # { nombre: 'ontie'|'flote'|'duble' }
+        self.lineas  = codigo_c3d
+        self.tabla   = tabla_simbolos   # { nombre: 'ontie'|'flote'|'duble'|'shen' }
 
-    # tipo C++ según tipo del lenguaje 
+    # ── helpers ──────────────────────────────────────────────
 
     def _tipo_cpp(self, tipo_leng):
-        return {'ontie': 'int', 'flote': 'float', 'duble': 'double'}.get(tipo_leng, 'double')
-
-    #  detecta si un token es temporal (t1, t2, …) 
+        return {
+            'ontie': 'int',
+            'flote': 'float',
+            'duble': 'double',
+            'shen':  'const char*',                    # ← NUEVO
+        }.get(tipo_leng, 'double')
 
     def _es_temp(self, nombre):
         return nombre.startswith('t') and nombre[1:].isdigit()
 
-    #  traduce un operador del lenguaje a C++ 
+    def _es_string_val(self, val):
+        """Devuelve True si el valor es un literal string (entre comillas)."""
+        return val.strip().startswith('"')
 
     def _op(self, op_leng):
         return self.OP_MAP.get(op_leng, op_leng)
-
-    #  traduce una expresión simple (puede contener operadores) 
 
     def _traducir_expr(self, expr):
         for op_l, op_c in self.OP_MAP.items():
             expr = expr.replace(op_l, op_c)
         return expr
 
-    #  genera el bloque de declaraciones de variables del usuario 
+    # ── declaraciones ────────────────────────────────────────
 
     def _declaraciones_usuario(self):
         lines = []
         for nombre, tipo in self.tabla.items():
-            lines.append(f"    {self._tipo_cpp(tipo)} {nombre} = 0;")
+            if tipo == 'shen':
+                lines.append(f'    const char* {nombre} = "";')  # ← NUEVO
+            else:
+                lines.append(f'    {self._tipo_cpp(tipo)} {nombre} = 0;')
         return lines
-
-    #  recorre el C3D e infiere qué temporales se necesitan 
 
     def _declaraciones_temps(self):
         temps = set()
@@ -258,11 +291,10 @@ class C3DAC_Traductor:
                 dest = linea.split('=')[0].strip()
                 if self._es_temp(dest):
                     temps.add(dest)
-        # ordenar t1, t2, t3 …
         temps = sorted(temps, key=lambda x: int(x[1:]))
         return [f"    double {t};" for t in temps]
 
-    #  traduce una línea de C3D a C++ 
+    # ── traducción línea a línea ──────────────────────────────
 
     def _traducir_linea(self, linea):
         linea = linea.strip()
@@ -271,9 +303,14 @@ class C3DAC_Traductor:
         if linea.endswith(':') and ' ' not in linea:
             return f"    {linea}"
 
-        # print valor
+        # print valor  — mismo keyword para número y string
         if linea.startswith('print '):
             val = self._traducir_expr(linea[6:].strip())
+            if self._es_string_val(val):               # ← NUEVO: string
+                return f'    printf("%s\\n", {val});'
+            # es variable shen (ID) o temporal de string
+            if val in self.tabla and self.tabla[val] == 'shen':
+                return f'    printf("%s\\n", {val});'  # ← NUEVO
             return f'    printf("%g\\n", (double)({val}));'
 
         # return expr  /  return
@@ -286,48 +323,40 @@ class C3DAC_Traductor:
 
         # if cond goto LX
         if linea.startswith('if '):
-            # formato: "if <cond> goto <label>"
-            partes = linea.split()
-            # partes: ['if', ..cond.., 'goto', 'LX']
-            label  = partes[-1]
-            # la condición está entre 'if' y 'goto'
             idx_goto = linea.rfind(' goto ')
             cond_raw = linea[3:idx_goto].strip()
-            cond = self._traducir_expr(cond_raw)
+            cond  = self._traducir_expr(cond_raw)
+            label = linea.split()[-1]
             return f"    if ({cond}) goto {label};"
 
         # goto LX
         if linea.startswith('goto '):
-            label = linea.split()[1]
-            return f"    goto {label};"
+            return f"    goto {linea.split()[1]};"
 
-        # asignación:  dest = left OP right  |  dest = valor
+        # asignación
         if '=' in linea:
             dest, resto = linea.split('=', 1)
             dest  = dest.strip()
             resto = self._traducir_expr(resto.strip())
             return f"    {dest} = {resto};"
 
-        return f"    // {linea}"   # línea desconocida → comentario
+        return f"    // {linea}"
 
-    #  punto de entrada: genera el string del .cpp completo 
+    # ── punto de entrada ─────────────────────────────────────
 
     def generar_cpp(self):
         cpp = []
         cpp.append('#include <stdio.h>')
+        cpp.append('#include <string.h>')                  # ← NUEVO para strings
         cpp.append('')
         cpp.append('int main() {')
 
-        # declaraciones de variables del usuario
         cpp += self._declaraciones_usuario()
-
-        # declaraciones de temporales inferidas
         cpp += self._declaraciones_temps()
 
         if self._declaraciones_usuario() or self._declaraciones_temps():
             cpp.append('')
 
-        # cuerpo traducido
         for linea in self.lineas:
             cpp.append(self._traducir_linea(linea))
 

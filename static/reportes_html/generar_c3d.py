@@ -23,10 +23,12 @@ OP_CPP = {
     'compag': '==',
 }
 
+# ── tipos del lenguaje → C++ ─────────────────────────────────
 TIPO_CPP = {
     'ontie': 'int',
     'flote': 'float',
     'duble': 'double',
+    'shen':  'const char*',        # NUEVO
 }
 
 
@@ -80,39 +82,70 @@ def traducir_expr(expr):
     return expr
 
 
+# ── detecta si un valor es un literal string ─────────────────
+def es_string_val(val):
+    return val.strip().startswith('"')
+
+
 # ── traducir una línea C3D a C++ ─────────────────────────────
-def c3d_a_cpp(linea):
+def c3d_a_cpp(linea, tabla=None):
+    if tabla is None:
+        tabla = {}
+
     l = linea.strip()
     if not l:
         return ''
+
+    # Etiqueta
     if l.endswith(':') and ' ' not in l:
         return f'    {l}'
+
+    # print — mismo keyword para números y strings
     if l.startswith('print '):
         val = traducir_expr(l[6:].strip())
-        return f'    printf("%g\\n", (double)({val}));'
+        if es_string_val(val):                          # literal "..."
+            return f'    printf("%s\\n", {val});'
+        if val in tabla and tabla[val] == 'shen':       # variable shen
+            return f'    printf("%s\\n", {val});'
+        return f'    printf("%g\\n", (double)({val}));' # número / temporal
+
     if l.startswith('return'):
         resto = l[6:].strip()
         return f'    return (int)({traducir_expr(resto)});' if resto else '    return 0;'
+
     if l.startswith('if '):
         idx = l.rfind(' goto ')
         cond  = traducir_expr(l[3:idx].strip())
         label = l.split()[-1]
         return f'    if ({cond}) goto {label};'
+
     if l.startswith('goto '):
         return f'    goto {l.split()[1]};'
+
     if '=' in l:
         dest, resto = l.split('=', 1)
         return f'    {dest.strip()} = {traducir_expr(resto.strip())};'
+
     return f'    // {l}'
 
 
 # ── generar el .cpp completo ─────────────────────────────────
 def generar_cpp(codigo_c3d, tabla):
-    cpp = ['#include <stdio.h>', '', 'int main() {']
+    cpp = [
+        '#include <stdio.h>',
+        '#include <string.h>',    # NUEVO para strings
+        '',
+        'int main() {'
+    ]
 
+    # Declaraciones de variables del usuario
     for nombre, tipo in tabla.items():
-        cpp.append(f'    {TIPO_CPP.get(tipo, "double")} {nombre} = 0;')
+        if tipo == 'shen':
+            cpp.append(f'    const char* {nombre} = "";')   # NUEVO
+        else:
+            cpp.append(f'    {TIPO_CPP.get(tipo, "double")} {nombre} = 0;')
 
+    # Temporales numéricos inferidos del C3D
     temps = sorted(
         {l.split('=')[0].strip() for l in codigo_c3d
          if '=' in l and not l.strip().endswith(':')
@@ -126,8 +159,9 @@ def generar_cpp(codigo_c3d, tabla):
     if tabla or temps:
         cpp.append('')
 
+    # Cuerpo — pasamos tabla para que print distinga shen
     for linea in codigo_c3d:
-        cpp.append(c3d_a_cpp(linea))
+        cpp.append(c3d_a_cpp(linea, tabla))
 
     cpp += ['', '    return 0;', '}']
     return '\n'.join(cpp)
@@ -139,13 +173,11 @@ def main():
     ruta_base     = os.path.join(ruta_reportes, 'c3d_base.html')
     ruta_salida   = os.path.join(ruta_reportes, 'reporte_c3d.html')
 
-    # borrar reporte anterior si existe
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
     archivo = os.path.join(ruta_raiz, 'programa.leng')
 
-    # fase sintáctica silenciosa
     stream = FileStream(archivo, encoding='utf-8')
     lexer  = LenguajeLexer(stream)
     tokens = CommonTokenStream(lexer)
@@ -160,7 +192,6 @@ def main():
         print("No se puede generar C3D (errores sintácticos)")
         return
 
-    # fase semántica
     semantico = AnalizadorSemantico()
     semantico.visit(tree)
 
@@ -168,22 +199,18 @@ def main():
         print("No se puede generar C3D (errores semánticos)")
         return
 
-    # generación C3D1
     generador = C3DGenerador(semantico.tabla_simbolos)
     generador.visit(tree)
 
     codigo_c3d = generador.codigo
 
-    # guardar .c3d plano
     with open(os.path.join(ruta_reportes, 'salida.c3d'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(codigo_c3d))
 
-    # generar y guardar .cpp
     cpp_texto = generar_cpp(codigo_c3d, semantico.tabla_simbolos)
     with open(os.path.join(ruta_reportes, 'salida.cpp'), 'w', encoding='utf-8') as f:
         f.write(cpp_texto)
 
-    # ── construir filas HTML (mismo patrón que reporte_tokens.py) ──
     if not os.path.exists(ruta_base):
         print("ERROR: No existe c3d_base.html")
         return
@@ -199,9 +226,13 @@ def main():
         color = COLORES.get(tipo, '#c8d8f8')
         bg    = '#0d1225' if i % 2 == 0 else '#090d1a'
         badge_color = {
-            'etiqueta': '#a855f7', 'condicional': '#f5a623', 'salto': '#f5a623',
-            'impresión': '#00d4ff', 'retorno': '#ff4d6a',
-            'temporal': '#4f8ef7', 'asignación': '#22f08a',
+            'etiqueta':   '#a855f7',
+            'condicional':'#f5a623',
+            'salto':      '#f5a623',
+            'impresión':  '#00d4ff',
+            'retorno':    '#ff4d6a',
+            'temporal':   '#4f8ef7',
+            'asignación': '#22f08a',
         }.get(tipo, '#3a4a6a')
 
         filas += f"""
@@ -211,13 +242,11 @@ def main():
             <td><span style="color:{badge_color};font-size:10px;letter-spacing:.06em">{tipo}</span></td>
         </tr>"""
 
-    # inyectar filas (mismo patrón .replace que los demás reportes)
     html = html.replace(
         '<tbody id="tbody">',
         f'<tbody id="tbody">{filas}'
     )
 
-    # inyectar el cpp en el <pre>
     cpp_escaped = cpp_texto.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     html = html.replace(
         '— analiza primero tu código —',
