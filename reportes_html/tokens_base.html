@@ -123,6 +123,10 @@
       color: var(--text-muted);
       font-size: 11px;
     }
+    tbody td:nth-child(5) {
+      color: var(--blue);
+      font-size: 11px;
+    }
     .empty {
       padding: 40px;
       text-align: center;
@@ -142,7 +146,7 @@
     </div>
     <div>
       <h1>Reporte de Tokens</h1>
-      <div class="subtitle">Análisis léxico — salida de tokens</div>
+      <div class="subtitle">Analisis lexico — salida de tokens</div>
     </div>
     <div class="badge" id="count-badge">— tokens</div>
   </div>
@@ -153,9 +157,9 @@
         <tr>
           <th>Tipo</th>
           <th>Lexema</th>
-          <th>Línea</th>
+          <th>Linea</th>
           <th>Columna</th>
-          <th>Equivalente</th>
+          <th>Equivalente C++</th>
         </tr>
       </thead>
       <tbody id="tbody">
@@ -169,7 +173,7 @@
     const badge = document.getElementById('count-badge');
     if (rows.length === 0) {
       document.getElementById('tbody').innerHTML =
-        '<tr><td colspan="4" class="empty">Sin tokens — analiza primero tu código</td></tr>';
+        '<tr><td colspan="5" class="empty">Sin tokens — analiza primero tu codigo</td></tr>';
       badge.textContent = '0 tokens';
     } else {
       badge.textContent = rows.length + ' token' + (rows.length !== 1 ? 's' : '');

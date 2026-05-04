@@ -11,7 +11,7 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
 
-VOCABULARIO = ["variabli", "ontie", "flote", "duble", "amprimi"]
+VOCABULARIO = ["variabli", "ontie", "flote", "duble", "amprimi", "shen"]
 
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.6)
@@ -55,28 +55,28 @@ def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
 def obtener_equivalente(tipo, lexema):
     equivalencias = {
         "PRINCIPAL": "int main",
-        "WI": "if",
-        "OTRE": "else",
-        "PENDAN": "while",
-        "RETUR": "return",
-        "ONTIE": "int",
-        "FLOTE": "float",
-        "DUBLE": "double",
-        "AMPRIMI": "printf",
-        "IGUAL": "=",
+        "WI":        "if",
+        "OTRE":      "else",
+        "PENDAN":    "while",
+        "RETUR":     "return",
+        "ONTIE":     "int",
+        "FLOTE":     "float",
+        "DUBLE":     "double",
+        "SHEN":      "char*",
+        "AMPRIMI":   "printf",
+        "IGUAL":     "=",
         "PUNTOCOMA": ";",
         "PARENTESIS_ABIERTO": "(",
         "PARENTESIS_CERRADO": ")",
         "LLAVE_ABIERTA": "{",
         "LLAVE_CERRADA": "}",
-        "OP": "operador"
+        "OP":        "operador",
+        "STRING":    "literal string",
     }
 
-    # Si es palabra reservada
     if tipo in equivalencias:
         return equivalencias[tipo]
 
-    # Si es identificador o número, se deja igual
     if tipo in ["ID", "INT", "FLOAT_LIT"]:
         return lexema
 
@@ -87,7 +87,6 @@ def main():
 
     ruta_salida = os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html")
 
-    # BORRAR HTML ANTERIOR SI EXISTE
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
@@ -110,16 +109,14 @@ def main():
 
     parser.programa()
 
-    # SI HAY ERRORES NO GENERA TOKENS
     if errores_lexicos:
-        print("0 tokens (error léxico)")
+        print("0 tokens (error lexico)")
         return
 
     if listener_error.hay_error:
-        print("0 tokens (error sintáctico)")
+        print("0 tokens (error sintactico)")
         return
 
-    # GENERA HTML SI ESTÁ BIEN
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
 
     if not os.path.exists(ruta_base):
@@ -133,7 +130,6 @@ def main():
 
     for t in tokens_lista:
         equivalente = obtener_equivalente(t['tipo'], t['lexema'])
-
         filas += f"""
         <tr>
             <td>{t['tipo']}</td>
@@ -152,7 +148,6 @@ def main():
     with open(ruta_salida, "w", encoding="utf-8") as f:
         f.write(html)
 
-    # MENSAJE BONITO
     cantidad = len(tokens_lista)
 
     if cantidad == 0:
