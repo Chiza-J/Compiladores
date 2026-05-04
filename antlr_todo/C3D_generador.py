@@ -9,6 +9,9 @@ class C3DGenerador(LenguajeVisitor):
         self.temp_count = 0
         self.label_count = 0
         self.tabla = tabla_simbolos
+        self.tipos_temp = {}   #  TIPADO AUTOMÁTICO
+
+    # HELPERS
 
     def new_temp(self):
         self.temp_count += 1
@@ -20,6 +23,38 @@ class C3DGenerador(LenguajeVisitor):
 
     def emit(self, line):
         self.codigo.append(line)
+
+    #  OBTENER TIPO DE UN VALOR
+    def obtener_tipo(self, val):
+
+        if val in self.tabla:
+            return self.tabla[val]
+
+        if val in self.tipos_temp:
+            return self.tipos_temp[val]
+
+        if val.startswith('"'):
+            return 'shen'
+
+        if '.' in val:
+            return 'duble'
+
+        if val.isdigit():
+            return 'ontie'
+
+        return 'ontie'
+
+    #  PROMOCIÓN DE TIPOS
+    def promocion(self, t1, t2):
+        if 'shen' in (t1, t2):
+            return 'shen'
+        if 'duble' in (t1, t2):
+            return 'duble'
+        if 'flote' in (t1, t2):
+            return 'flote'
+        return 'ontie'
+
+    # ESTRUCTURA
 
     def visitPrograma(self, ctx):
         return self.visitChildren(ctx)
@@ -33,7 +68,8 @@ class C3DGenerador(LenguajeVisitor):
     def visitInstruccion(self, ctx):
         return self.visitChildren(ctx)
 
-    #  DECLARACIÓN
+    # DECLARACIÓN
+
     def visitDeclaracion(self, ctx):
         var = ctx.ID().getText()
 
@@ -51,7 +87,8 @@ class C3DGenerador(LenguajeVisitor):
 
         self.emit(f"{var} = {value}")
 
-    #  ASIGNACIÓN
+    # ASIGNACIÓN
+
     def visitAsignacion(self, ctx):
         var = ctx.ID().getText()
 
@@ -61,12 +98,14 @@ class C3DGenerador(LenguajeVisitor):
         value = self.visit(ctx.expr())
         self.emit(f"{var} = {value}")
 
-    #  PRINT
+    # PRINT
+
     def visitImpresion(self, ctx):
         value = self.visit(ctx.expr())
         self.emit(f"print {value}")
 
-    #  EXPRESIONES
+    # EXPRESIONES ( AQUÍ PASA LA MAGIA)
+
     def visitExpr(self, ctx):
         if ctx.getChildCount() == 1:
             return ctx.getText()
@@ -76,6 +115,19 @@ class C3DGenerador(LenguajeVisitor):
         right = self.visit(ctx.expr(1))
 
         temp = self.new_temp()
+
+        tipo_izq = self.obtener_tipo(left)
+        tipo_der = self.obtener_tipo(right)
+
+        #  REGLAS
+        if tipo_izq == 'shen' or tipo_der == 'shen':
+            tipo_result = 'shen'
+        else:
+            tipo_result = self.promocion(tipo_izq, tipo_der)
+
+        #  GUARDAR TIPO
+        self.tipos_temp[temp] = tipo_result
+
         self.emit(f"{temp} = {left} {op} {right}")
         return temp
 
@@ -88,6 +140,9 @@ class C3DGenerador(LenguajeVisitor):
         right = self.visit(ctx.expr_entera(1))
 
         temp = self.new_temp()
+
+        self.tipos_temp[temp] = 'ontie'   #  FORZADO
+
         self.emit(f"{temp} = {left} {op} {right}")
         return temp
 
@@ -100,6 +155,9 @@ class C3DGenerador(LenguajeVisitor):
         right = self.visit(ctx.expr_decimal(1))
 
         temp = self.new_temp()
+
+        self.tipos_temp[temp] = 'duble'   #  FORZADO
+
         self.emit(f"{temp} = {left} {op} {right}")
         return temp
 
@@ -112,10 +170,14 @@ class C3DGenerador(LenguajeVisitor):
         right = self.visit(ctx.expr_string(1))
 
         temp = self.new_temp()
+
+        self.tipos_temp[temp] = 'shen'   #  STRING
+
         self.emit(f"{temp} = {left} {op} {right}")
         return temp
 
     # CONTROL
+
     def visitCondicion_if(self, ctx):
         cond = self.visit(ctx.expr())
 
@@ -166,7 +228,7 @@ class C3DGenerador(LenguajeVisitor):
 
 
 # ============================================
-#  TRADUCTOR CORREGIDO
+# TRADUCTOR CON TIPOS REALES
 # ============================================
 
 class C3DAC_Traductor:
@@ -181,9 +243,10 @@ class C3DAC_Traductor:
         'compag': '=='
     }
 
-    def __init__(self, codigo_c3d, tabla_simbolos):
+    def __init__(self, codigo_c3d, tabla_simbolos, tipos_temp):
         self.lineas = codigo_c3d
         self.tabla = tabla_simbolos
+        self.tipos_temp = tipos_temp   #  IMPORTANTE
 
     def _tipo_cpp(self, tipo):
         return {
@@ -201,27 +264,35 @@ class C3DAC_Traductor:
             expr = expr.replace(k, v)
         return expr
 
-    #  VARIABLES
+    # VARIABLES
     def _declaraciones_usuario(self):
         lines = []
         for nombre, tipo in self.tabla.items():
-            lines.append(f'    {self._tipo_cpp(tipo)} {nombre} = "";' if tipo == 'shen'
-                         else f'    {self._tipo_cpp(tipo)} {nombre} = 0;')
+            if tipo == 'shen':
+                lines.append(f'    string {nombre} = "";')
+            else:
+                lines.append(f'    {self._tipo_cpp(tipo)} {nombre} = 0;')
         return lines
 
-    #  TEMPORALES
+    #  TEMPORALES TIPADOS
     def _declaraciones_temps(self):
         temps = set()
+
         for linea in self.lineas:
             if '=' in linea:
                 dest = linea.split('=')[0].strip()
                 if self._es_temp(dest):
                     temps.add(dest)
 
-        #  IMPORTANTE: temporales string también funcionan con string
-        return [f"    string {t};" for t in sorted(temps)]
+        decls = []
+        for t in sorted(temps, key=lambda x: int(x[1:])):
+            tipo = self.tipos_temp.get(t, 'duble')
+            cpp_tipo = self._tipo_cpp(tipo)
+            decls.append(f"    {cpp_tipo} {t};")
 
-    #  TRADUCCIÓN
+        return decls
+
+    # TRADUCCIÓN
     def _traducir_linea(self, linea):
         linea = linea.strip()
 
@@ -251,7 +322,7 @@ class C3DAC_Traductor:
 
         return f"    // {linea}"
 
-    #  GENERAR CPP
+    # GENERAR CPP
     def generar_cpp(self):
         cpp = []
         cpp.append('#include <iostream>')
