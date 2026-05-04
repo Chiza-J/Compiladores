@@ -71,22 +71,15 @@ class C3DGenerador(LenguajeVisitor):
             return
 
         # Si la variable es shen, visitar expr_string si existe
-        tipo = self.tabla.get(var, '')
-        if tipo == 'shen' and ctx.expr_string():       # ← NUEVO
-            value = self.visit(ctx.expr_string())
-        else:
-            value = self.visit(ctx.expr())
-        self.emit(f"{var} = {value}")
+        value = self.visit(ctx.expr())
 
     #  Impresión:  amprimi(expr) puavir
     #  Funciona igual para números y strings — el traductor distingue
 
     def visitImpresion(self, ctx):
         # Soporta expr numérica o expr_string con la misma instrucción print
-        if ctx.expr_string():                          # ← NUEVO
-            value = self.visit(ctx.expr_string())
-        else:
-            value = self.visit(ctx.expr())
+        value = self.visit(ctx.expr())
+        self.emit(f"print {value}")
         self.emit(f"print {value}")
 
     #  Expresión general:

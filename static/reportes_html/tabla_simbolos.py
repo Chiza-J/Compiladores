@@ -77,7 +77,7 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
             tipo = 'ontie'
         elif ctx.FLOTE():
             tipo = 'flote'
-        elif ctx.SHEN():           # ← NUEVO
+        elif ctx.SHEN():           #  NUEVO
             tipo = 'shen'
         else:
             tipo = 'duble'
@@ -124,10 +124,7 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         col    = ctx.ID().getSymbol().column
 
         # ← tomar texto correcto si es string o numérico
-        if ctx.expr_string():      # ← NUEVO
-            valor_txt = ctx.expr_string().getText()
-        else:
-            valor_txt = ctx.expr().getText()
+        valor_txt = ctx.expr().getText()
 
         if nombre in self.tabla:
             self.tabla[nombre]['veces_asignada'] += 1
