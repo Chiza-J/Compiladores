@@ -7,15 +7,14 @@ class AnalizadorSemantico(LenguajeVisitor):
 
     def __init__(self):
         self.tabla_simbolos = {}
-        self.errores = []   # lista de dicts: {linea, columna, mensaje, tipo}
+        self.errores = []   # siempre dicts: {linea, columna, mensaje, tipo}
 
-    # ── helper para agregar error con ubicación ───────────────
+    #  helper para agregar error con ubicación 
     def _error(self, ctx, mensaje):
-        """Extrae línea/columna del contexto y agrega el error como dict."""
         try:
             token = ctx.start if hasattr(ctx, 'start') else ctx
-            linea  = token.line
-            col    = token.column
+            linea = token.line
+            col   = token.column
         except Exception:
             linea, col = 0, 0
         self.errores.append({
@@ -25,7 +24,34 @@ class AnalizadorSemantico(LenguajeVisitor):
             'tipo':    'Semántico',
         })
 
-    # ── PROGRAMA / BLOQUES ────────────────────────────────────
+    #  helper: obtiene el ctx de la expresión de valor en shen
+    def _get_expr_cadena(self, ctx):
+        """
+        Busca el hijo de DeclaracionContext que corresponde a expr_cadena.
+        Funciona aunque el parser no haya sido regenerado con el método
+        expr_cadena() — recorre los hijos buscando uno que tenga STRING.
+        """
+        # Si el parser ya tiene el método, úsalo
+        if hasattr(ctx, 'expr_cadena') and callable(ctx.expr_cadena):
+            try:
+                result = ctx.expr_cadena()
+                if result is not None:
+                    return result
+            except Exception:
+                pass
+
+        # Fallback: buscar entre los hijos el que tenga STRING o ID
+        for i in range(ctx.getChildCount()):
+            child = ctx.getChild(i)
+            if hasattr(child, 'STRING') and child.STRING():
+                return child
+            if hasattr(child, 'ID') and child.ID():
+                # solo si no es el ID de la declaración (el 2do token)
+                if i > 1:
+                    return child
+        return None
+
+    #  PROGRAMA / BLOQUES 
 
     def visitPrograma(self, ctx: LenguajeParser.ProgramaContext):
         return self.visitChildren(ctx)
@@ -39,7 +65,7 @@ class AnalizadorSemantico(LenguajeVisitor):
     def visitInstruccion(self, ctx: LenguajeParser.InstruccionContext):
         return self.visitChildren(ctx)
 
-    # ── DECLARACIÓN ───────────────────────────────────────────
+    #  DECLARACIÓN 
 
     def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
@@ -55,7 +81,9 @@ class AnalizadorSemantico(LenguajeVisitor):
             tipo_expr = self.obtener_tipo_expr(ctx.expr_decimal())
         elif ctx.SHEN():
             tipo      = 'shen'
-            tipo_expr = self.obtener_tipo_expr(ctx.expr_cadena())   # ← expr_cadena
+            # compatible tanto con parser nuevo (expr_cadena) como viejo
+            expr_cad  = self._get_expr_cadena(ctx)
+            tipo_expr = self.obtener_tipo_expr(expr_cad)
         else:
             return
 
@@ -64,7 +92,7 @@ class AnalizadorSemantico(LenguajeVisitor):
 
         self.tabla_simbolos[nombre] = tipo
 
-    # ── ASIGNACIÓN ────────────────────────────────────────────
+    #  ASIGNACIÓN 
 
     def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
@@ -79,13 +107,13 @@ class AnalizadorSemantico(LenguajeVisitor):
         if not self.es_compatible(tipo_var, tipo_expr):
             self._error(ctx, f"No se puede asignar '{tipo_expr}' a '{tipo_var}' en '{nombre}'")
 
-    # ── IMPRESIÓN ─────────────────────────────────────────────
+    #  IMPRESIÓN 
 
     def visitImpresion(self, ctx):
         self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
-    # ── CONTROL DE FLUJO ──────────────────────────────────────
+    #  CONTROL DE FLUJO 
 
     def visitCondicion_if(self, ctx):
         tipo = self.obtener_tipo_expr(ctx.expr())
@@ -104,7 +132,7 @@ class AnalizadorSemantico(LenguajeVisitor):
             self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
-    # ── VALIDACIÓN DE EXPRESIONES ─────────────────────────────
+    #  VALIDACIÓN DE EXPRESIONES 
 
     def obtener_tipo_expr(self, ctx):
         if ctx is None:
@@ -151,7 +179,7 @@ class AnalizadorSemantico(LenguajeVisitor):
 
         return 'error'
 
-    # ── PROMOCIÓN DE TIPOS ────────────────────────────────────
+    #  PROMOCIÓN DE TIPOS 
 
     def promocion(self, t1, t2):
         if 'duble' in (t1, t2):
@@ -160,7 +188,7 @@ class AnalizadorSemantico(LenguajeVisitor):
             return 'flote'
         return 'ontie'
 
-    # ── COMPATIBILIDAD ────────────────────────────────────────
+    #  COMPATIBILIDAD 
 
     def es_compatible(self, destino, origen):
         if destino == origen:
