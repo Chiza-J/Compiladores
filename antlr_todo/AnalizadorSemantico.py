@@ -7,9 +7,25 @@ class AnalizadorSemantico(LenguajeVisitor):
 
     def __init__(self):
         self.tabla_simbolos = {}
-        self.errores = []
+        self.errores = []   # lista de dicts: {linea, columna, mensaje, tipo}
 
-    # PROGRAMA / BLOQUES
+    # ── helper para agregar error con ubicación ───────────────
+    def _error(self, ctx, mensaje):
+        """Extrae línea/columna del contexto y agrega el error como dict."""
+        try:
+            token = ctx.start if hasattr(ctx, 'start') else ctx
+            linea  = token.line
+            col    = token.column
+        except Exception:
+            linea, col = 0, 0
+        self.errores.append({
+            'linea':   linea,
+            'columna': col,
+            'mensaje': mensaje,
+            'tipo':    'Semántico',
+        })
+
+    # ── PROGRAMA / BLOQUES ────────────────────────────────────
 
     def visitPrograma(self, ctx: LenguajeParser.ProgramaContext):
         return self.visitChildren(ctx)
@@ -23,73 +39,64 @@ class AnalizadorSemantico(LenguajeVisitor):
     def visitInstruccion(self, ctx: LenguajeParser.InstruccionContext):
         return self.visitChildren(ctx)
 
-    # DECLARACIÓN
+    # ── DECLARACIÓN ───────────────────────────────────────────
 
     def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
 
         if ctx.ONTIE():
-            tipo = 'ontie'
+            tipo      = 'ontie'
             tipo_expr = self.obtener_tipo_expr(ctx.expr_entera())
         elif ctx.FLOTE():
-            tipo = 'flote'
+            tipo      = 'flote'
             tipo_expr = self.obtener_tipo_expr(ctx.expr_decimal())
         elif ctx.DUBLE():
-            tipo = 'duble'
+            tipo      = 'duble'
             tipo_expr = self.obtener_tipo_expr(ctx.expr_decimal())
         elif ctx.SHEN():
-            tipo = 'shen'
-            tipo_expr = self.obtener_tipo_expr(ctx.expr_string())
+            tipo      = 'shen'
+            tipo_expr = self.obtener_tipo_expr(ctx.expr_cadena())   # ← expr_cadena
         else:
             return
 
-        # VALIDACIÓN DE ASIGNACIÓN
         if not self.es_compatible(tipo, tipo_expr):
-            self.errores.append(
-                f"Error: no se puede asignar {tipo_expr} a {tipo} en '{nombre}'"
-            )
+            self._error(ctx, f"No se puede asignar '{tipo_expr}' a '{tipo}' en '{nombre}'")
 
         self.tabla_simbolos[nombre] = tipo
 
-    # ASIGNACIÓN
+    # ── ASIGNACIÓN ────────────────────────────────────────────
 
     def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
 
         if nombre not in self.tabla_simbolos:
-            self.errores.append(f"Variable '{nombre}' no declarada")
+            self._error(ctx, f"Variable '{nombre}' no declarada")
             return
 
-        tipo_var = self.tabla_simbolos[nombre]
+        tipo_var  = self.tabla_simbolos[nombre]
         tipo_expr = self.obtener_tipo_expr(ctx.expr())
 
         if not self.es_compatible(tipo_var, tipo_expr):
-            self.errores.append(
-                f"Error: no se puede asignar {tipo_expr} a {tipo_var} en '{nombre}'"
-            )
+            self._error(ctx, f"No se puede asignar '{tipo_expr}' a '{tipo_var}' en '{nombre}'")
 
-    # IMPRESIÓN
+    # ── IMPRESIÓN ─────────────────────────────────────────────
 
     def visitImpresion(self, ctx):
         self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
-    # CONTROL DE FLUJO
+    # ── CONTROL DE FLUJO ──────────────────────────────────────
 
     def visitCondicion_if(self, ctx):
         tipo = self.obtener_tipo_expr(ctx.expr())
-
         if tipo == 'shen':
-            self.errores.append("Error: condición no puede ser string")
-
+            self._error(ctx, "La condición no puede ser de tipo 'shen'")
         return self.visitChildren(ctx)
 
     def visitCiclo_while(self, ctx):
         tipo = self.obtener_tipo_expr(ctx.expr())
-
         if tipo == 'shen':
-            self.errores.append("Error: condición no puede ser string")
-
+            self._error(ctx, "La condición no puede ser de tipo 'shen'")
         return self.visitChildren(ctx)
 
     def visitRetorno(self, ctx):
@@ -97,72 +104,54 @@ class AnalizadorSemantico(LenguajeVisitor):
             self.obtener_tipo_expr(ctx.expr())
         return self.visitChildren(ctx)
 
-    # VALIDACIÓN DE EXPRESIONES
+    # ── VALIDACIÓN DE EXPRESIONES ─────────────────────────────
 
     def obtener_tipo_expr(self, ctx):
-
         if ctx is None:
             return 'error'
 
-        # STRING
-        if hasattr(ctx, "STRING") and ctx.STRING():
+        if hasattr(ctx, 'STRING') and ctx.STRING():
             return 'shen'
 
-        # ENTERO
-        if hasattr(ctx, "INT") and ctx.INT():
+        if hasattr(ctx, 'INT') and ctx.INT():
             return 'ontie'
 
-        # DECIMAL
-        if hasattr(ctx, "FLOAT_LIT") and ctx.FLOAT_LIT():
+        if hasattr(ctx, 'FLOAT_LIT') and ctx.FLOAT_LIT():
             return 'duble'
 
-        # VARIABLE
-        if hasattr(ctx, "ID") and ctx.ID():
+        if hasattr(ctx, 'ID') and ctx.ID():
             nombre = ctx.ID().getText()
-
             if nombre not in self.tabla_simbolos:
-                self.errores.append(f"Variable '{nombre}' no declarada")
+                self._error(ctx, f"Variable '{nombre}' no declarada")
                 return 'error'
-
             return self.tabla_simbolos[nombre]
 
-        # EXPRESIÓN BINARIA
         if ctx.getChildCount() == 3:
             tipo_izq = self.obtener_tipo_expr(ctx.getChild(0))
             tipo_der = self.obtener_tipo_expr(ctx.getChild(2))
-            op = ctx.getChild(1).getText()
+            op       = ctx.getChild(1).getText()
 
-            # ERROR PREVIO
             if tipo_izq == 'error' or tipo_der == 'error':
                 return 'error'
 
-            #  STRINGS 
             if tipo_izq == 'shen' or tipo_der == 'shen':
                 if op == 'plu' and tipo_izq == 'shen' and tipo_der == 'shen':
                     return 'shen'
-                else:
-                    self.errores.append(
-                        f"Error: no se puede usar '{op}' entre {tipo_izq} y {tipo_der}"
-                    )
-                    return 'error'
+                self._error(ctx, f"No se puede usar '{op}' entre '{tipo_izq}' y '{tipo_der}'")
+                return 'error'
 
-            #  NUMÉRICOS 
             if tipo_izq in ['ontie', 'flote', 'duble'] and tipo_der in ['ontie', 'flote', 'duble']:
-
                 if op in ['plu', 'moan', 'par', 'bag']:
                     return self.promocion(tipo_izq, tipo_der)
-
                 if op in ['minog', 'aye', 'compag']:
-                    return 'ontie'  # boolean simulado como int
+                    return 'ontie'
 
-            self.errores.append(
-                f"Operación inválida: {tipo_izq} {op} {tipo_der}"
-            )
+            self._error(ctx, f"Operación inválida: '{tipo_izq}' {op} '{tipo_der}'")
             return 'error'
 
         return 'error'
 
-    # PROMOCIÓN DE TIPOS
+    # ── PROMOCIÓN DE TIPOS ────────────────────────────────────
 
     def promocion(self, t1, t2):
         if 'duble' in (t1, t2):
@@ -171,27 +160,17 @@ class AnalizadorSemantico(LenguajeVisitor):
             return 'flote'
         return 'ontie'
 
-    # COMPATIBILIDAD DE ASIGNACIÓN
+    # ── COMPATIBILIDAD ────────────────────────────────────────
 
     def es_compatible(self, destino, origen):
-
         if destino == origen:
             return True
-
-        # NUMÉRICOS (permite promoción hacia arriba)
-        if destino in ['duble', 'flote']:
-            if origen in ['ontie', 'flote', 'duble']:
-                return True
-
-        #  PROHIBIDO: string con números
+        if destino in ['duble', 'flote'] and origen in ['ontie', 'flote', 'duble']:
+            return True
         if destino == 'shen' and origen != 'shen':
             return False
-
         if destino != 'shen' and origen == 'shen':
             return False
-
-        #  evitar pérdida (double → int)
         if destino == 'ontie' and origen in ['flote', 'duble']:
             return False
-
         return False
