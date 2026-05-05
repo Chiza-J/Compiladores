@@ -12,7 +12,6 @@ from antlr4.error.ErrorListener import ErrorListener
 from antlr_todo.AnalizadorSemantico import AnalizadorSemantico
 
 
-# VOCABULARIO
 VOCABULARIO = [
     "ontie", "flote", "duble", "shen",
     "wi", "otre", "pendan", "retur",
@@ -36,9 +35,8 @@ class MiErrorListener(ErrorListener):
             sugerencia = sugerir_palabra(offendingSymbol.text)
             if sugerencia:
                 msg += f" | Sugerencia: '{sugerencia}'"
-
         self.errores.append({
-            "linea": line,
+            "linea":   line,
             "columna": column,
             "mensaje": msg
         })
@@ -47,20 +45,16 @@ class MiErrorListener(ErrorListener):
 def obtener_tokens(lexer):
     tokens = []
     token = lexer.nextToken()
-
     while token.type != Token.EOF:
         tipo = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
-
         if tipo not in ["WS", "COMMENT", "LINE_COMMENT"]:
             tokens.append({
-                "linea": token.line,
+                "linea":   token.line,
                 "columna": token.column,
-                "lexema": token.text,
-                "tipo": tipo
+                "lexema":  token.text,
+                "tipo":    tipo
             })
-
         token = lexer.nextToken()
-
     return tokens
 
 
@@ -69,14 +63,14 @@ def main():
 
     archivo = os.path.join(ruta_raiz, "programa.leng")
 
-    # ── Errores léxicos ──────────────────────────────────────────────
-    input_stream = FileStream(archivo)
+    # Errores lexicos
+    input_stream = FileStream(archivo, encoding='utf-8')
     lexer = LenguajeLexer(input_stream)
     tokens = obtener_tokens(lexer)
     errores_lexicos = [t for t in tokens if t["tipo"] == "ERROR_CHAR"]
 
-    # ── Errores sintácticos ──────────────────────────────────────────
-    input_stream2 = FileStream(archivo)
+    # Errores sintacticos
+    input_stream2 = FileStream(archivo, encoding='utf-8')
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
     parser = LenguajeParser(stream)
@@ -88,8 +82,8 @@ def main():
 
     errores_sintacticos = listener.errores
 
-    # ── Errores semánticos ───────────────────────────────────────────
-    input_stream3 = FileStream(archivo, encoding="utf-8")
+    # Errores semanticos
+    input_stream3 = FileStream(archivo, encoding='utf-8')
     lexer3 = LenguajeLexer(input_stream3)
     stream3 = CommonTokenStream(lexer3)
     parser3 = LenguajeParser(stream3)
@@ -100,10 +94,8 @@ def main():
     semantico.visit(tree)
     errores_semanticos = semantico.errores
 
-    # ── Construir filas HTML por pestaña ─────────────────────────────
+    # Construir filas HTML
     def filas_lexicos():
-        if not errores_lexicos:
-            return ""
         html = ""
         for e in errores_lexicos:
             html += f"""
@@ -111,13 +103,11 @@ def main():
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
                 <td>{e['lexema']}</td>
-                <td>Léxico</td>
+                <td>Lexico</td>
             </tr>"""
         return html
 
     def filas_sintacticos():
-        if not errores_sintacticos:
-            return ""
         html = ""
         for e in errores_sintacticos:
             html += f"""
@@ -125,13 +115,11 @@ def main():
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
                 <td>{e['mensaje']}</td>
-                <td>Sintáctico</td>
+                <td>Sintactico</td>
             </tr>"""
         return html
 
     def filas_semanticos():
-        if not errores_semanticos:
-            return ""
         html = ""
         for e in errores_semanticos:
             html += f"""
@@ -143,9 +131,8 @@ def main():
             </tr>"""
         return html
 
-    # ── Cargar base HTML ─────────────────────────────────────────────
+    # Cargar base HTML
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "errores_base.html")
-
     if not os.path.exists(ruta_base):
         print("ERRORES: No se pudo generar reporte")
         return
@@ -153,7 +140,6 @@ def main():
     with open(ruta_base, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Inyectar filas en cada tbody de cada pestaña
     html = html.replace('<tbody id="tbody-lexico">',
                         f'<tbody id="tbody-lexico">{filas_lexicos()}')
     html = html.replace('<tbody id="tbody-sintactico">',
@@ -161,13 +147,11 @@ def main():
     html = html.replace('<tbody id="tbody-semantico">',
                         f'<tbody id="tbody-semantico">{filas_semanticos()}')
 
-    # ── Guardar reporte final ────────────────────────────────────────
     salida = os.path.join(ruta_raiz, "reportes_html", "reporte_errores.html")
     with open(salida, "w", encoding="utf-8") as f:
         f.write(html)
 
     total = len(errores_lexicos) + len(errores_sintacticos) + len(errores_semanticos)
-
     if total == 0:
         print("Sin errores")
     elif total == 1:

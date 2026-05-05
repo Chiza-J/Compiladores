@@ -17,6 +17,7 @@ VOCABULARIO = [
     "plu", "moan", "par", "bag", "minog", "aye", "compag"
 ]
 
+
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.4)
     return sugerencias[0] if sugerencias else ""
@@ -27,28 +28,26 @@ def procesar_tokens(lexer):
     token = lexer.nextToken()
 
     while token.type != Token.EOF:
-        tipo = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
+        tipo   = lexer.symbolicNames[token.type] if token.type >= 0 else "UNKNOWN"
         lexema = token.text
 
         if tipo == "ERROR_CHAR":
             sugerencia = sugerir_palabra(lexema)
-            if sugerencia:  # ERROR_CHAR con sugerencia = recuperable
+            if sugerencia:
                 recuperables.append({
-                    "linea": token.line,
-                    "columna": token.column,
-                    "lexema": lexema,
+                    "linea":      token.line,
+                    "columna":    token.column,
+                    "lexema":     lexema,
                     "sugerencia": sugerencia
-                    
-                    
                 })
 
         elif tipo == "ID":
             sugerencia = sugerir_palabra(lexema)
-            if sugerencia:  # ID parecido a keyword = recuperable
+            if sugerencia:
                 recuperables.append({
-                    "linea": token.line,
-                    "columna": token.column,
-                    "lexema": lexema,
+                    "linea":      token.line,
+                    "columna":    token.column,
+                    "lexema":     lexema,
                     "sugerencia": sugerencia
                 })
 
@@ -60,7 +59,7 @@ def procesar_tokens(lexer):
 def main():
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
-    input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
+    input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"), encoding='utf-8')
     lexer = LenguajeLexer(input_stream)
     recuperables = procesar_tokens(lexer)
 
@@ -80,8 +79,7 @@ def main():
             <td>{r['columna']}</td>
             <td>{r['lexema']}</td>
             <td>{r['sugerencia']}</td>
-        </tr>
-        """
+        </tr>"""
 
     html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
 

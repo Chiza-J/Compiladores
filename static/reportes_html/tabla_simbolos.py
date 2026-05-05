@@ -206,7 +206,7 @@ def main():
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
-    input_stream = FileStream(os.path.join(ruta_raiz, 'programa.leng'))
+    input_stream = FileStream(os.path.join(ruta_raiz, 'programa.leng'),encoding='utf-8')
     lexer  = LenguajeLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = LenguajeParser(stream)
