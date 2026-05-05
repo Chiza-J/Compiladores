@@ -13,6 +13,7 @@ from antlr_todo.AnalizadorSemantico import AnalizadorSemantico
 from antlr_todo.C3D_generador import C3DGenerador
 
 
+# OPERADORES
 OP_CPP = {
     'plu': '+',
     'moan': '-',
@@ -23,6 +24,7 @@ OP_CPP = {
     'compag': '==',
 }
 
+# TIPOS
 TIPO_CPP = {
     'ontie': 'int',
     'flote': 'float',
@@ -31,6 +33,7 @@ TIPO_CPP = {
 }
 
 
+# ERROR LISTENER
 class ErrorSilencioso(ErrorListener):
     def __init__(self):
         self.hay_error = False
@@ -39,45 +42,54 @@ class ErrorSilencioso(ErrorListener):
         self.hay_error = True
 
 
+# TRADUCIR EXPRESIÓN
 def traducir_expr(expr):
     for op_l, op_c in OP_CPP.items():
         expr = expr.replace(op_l, op_c)
     return expr
 
 
+# TRADUCIR LÍNEA C3D  C++
 def c3d_a_cpp(linea):
     l = linea.strip()
 
     if not l:
         return ''
 
-    if l.endswith(':'):
+    # etiqueta
+    if l.endswith(':') and ' ' not in l:
         return f'    {l}'
 
+    # print
     if l.startswith('print '):
         val = traducir_expr(l[6:])
         return f'    cout << {val} << endl;'
 
+    # return
     if l.startswith('return'):
         val = l[6:].strip()
         return f'    return {val};' if val else '    return 0;'
 
+    # if
     if l.startswith('if '):
         idx = l.rfind(' goto ')
         cond = traducir_expr(l[3:idx])
         label = l.split()[-1]
         return f'    if ({cond}) goto {label};'
 
+    # goto
     if l.startswith('goto '):
         return f'    {l};'
 
+    # asignación
     if '=' in l:
-        dest, expr = l.split('=')
+        dest, expr = l.split('=', 1)
         return f'    {dest.strip()} = {traducir_expr(expr.strip())};'
 
     return f'    // {l}'
 
 
+# GENERAR C++
 def generar_cpp(codigo_c3d, tabla):
     cpp = [
         '#include <iostream>',
@@ -87,24 +99,31 @@ def generar_cpp(codigo_c3d, tabla):
         'int main() {'
     ]
 
+    # evitar duplicados reales
+    variables_declaradas = set()
+
     for nombre, tipo in tabla.items():
+        if nombre in variables_declaradas:
+            continue
+
+        variables_declaradas.add(nombre)
+
         if tipo == 'shen':
             cpp.append(f'    string {nombre} = "";')
         else:
             cpp.append(f'    {TIPO_CPP.get(tipo, "double")} {nombre} = 0;')
 
-    temps = sorted(
-    {
+    # detectar temporales sin chocar con variables
+    temps = sorted({
         l.split('=')[0].strip()
         for l in codigo_c3d
         if '=' in l
         and l.split('=')[0].strip().startswith('t')
-        and l.split('=')[0].strip() not in tabla  #  FIX
-    }
-)
+        and l.split('=')[0].strip() not in variables_declaradas
+    })
 
     for t in temps:
-        cpp.append(f'    string {t};')
+        cpp.append(f'    string {t};')  # temporales universales
 
     cpp.append('')
 
@@ -115,6 +134,7 @@ def generar_cpp(codigo_c3d, tabla):
     return '\n'.join(cpp)
 
 
+# MAIN
 def main():
 
     ruta_html = os.path.join(ruta_raiz, 'reportes_html', 'c3d_base.html')
@@ -133,10 +153,12 @@ def main():
 
     tree = parser.programa()
 
+    #  error sintáctico
     if err.hay_error:
         print("Errores sintácticos")
         return
 
+    # semántico
     semantico = AnalizadorSemantico()
     semantico.visit(tree)
 
@@ -146,21 +168,26 @@ def main():
             print(e)
         return
 
+    # generar C3D
     generador = C3DGenerador(semantico.tabla_simbolos)
     generador.visit(tree)
 
     codigo_c3d = generador.codigo
+
+    # generar C++
     cpp_texto = generar_cpp(codigo_c3d, semantico.tabla_simbolos)
 
-    # ----------- HTML FIX REAL -----------
+    #  HTML 
     with open(ruta_html, 'r', encoding='utf-8') as f:
         html = f.read()
 
+    # filas C3D
     filas = ''
     for i, linea in enumerate(codigo_c3d):
-        filas += f"<tr><td>{i+1}</td><td>{linea}</td><td></td></tr>"
+        if linea.strip():
+            filas += f"<tr><td>{i+1}</td><td>{linea}</td><td></td></tr>"
 
-    #  FIX TABLA (ROBUSTO)
+    # reemplazo robusto tabla
     html = re.sub(
         r'<tbody id="tbody">.*?</tbody>',
         f'<tbody id="tbody">{filas}</tbody>',
@@ -168,9 +195,10 @@ def main():
         flags=re.DOTALL
     )
 
-    #  FIX CPP (ROBUSTO)
+    # escapar C++
     cpp_escaped = cpp_texto.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
 
+    # reemplazo robusto código
     html = re.sub(
         r'<pre id="cpp-code">.*?</pre>',
         f'<pre id="cpp-code">{cpp_escaped}</pre>',
