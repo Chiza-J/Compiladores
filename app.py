@@ -54,6 +54,7 @@ def analizar():
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_tokens.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html'),
+        os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_semantico.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html'),
         os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_c3d.html')
     ]
@@ -153,6 +154,7 @@ def descargar_todo():
         ruta_errores = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_errores.html')
         ruta_rec = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_recuperables.html')
         ruta_tabla = os.path.join(RUTA_PROYECTO, 'reportes_html', 'tabla_simbolos.html')
+        ruta_semanticos = os.path.join(RUTA_PROYECTO, 'reportes_html', 'reporte_semantico.html')
         ruta_cpp = os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.cpp')
         ruta_c3d = os.path.join(RUTA_PROYECTO, 'reportes_html', 'salida.c3d')
 
@@ -167,6 +169,9 @@ def descargar_todo():
 
         if os.path.exists(ruta_tabla):
             zipf.write(ruta_tabla, 'reportes/tabla_simbolos.html')
+
+        if os.path.exists(ruta_semanticos):
+            zipf.write(ruta_semanticos, 'reportes/reporte_semantico.html')
 
         if os.path.exists(ruta_cpp):
             zipf.write(ruta_cpp, 'reportes/salida.cpp')
