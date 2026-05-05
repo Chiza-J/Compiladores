@@ -11,13 +11,24 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 
 
-VOCABULARIO = ["variabli", "ontie", "flote", "duble", "amprimi", "shen"]
+#  VOCABULARIO PARA SUGERENCIAS
+VOCABULARIO = [
+    "principal", "wi", "otre", "pendan", "retur",
+    "ontie", "flote", "duble", "shen",
+    "amprimi", "iyal",
+    "puavir", "pasuvert", "pasferme",
+    "cleuvert", "cleferme",
+    "plu", "moan", "par", "bag", "minog", "aye", "compag",
+    "comenter"
+]
+
 
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.6)
     return sugerencias[0] if sugerencias else ""
 
 
+#  ERROR LISTENER
 class MiErrorListener(ErrorListener):
     def __init__(self):
         self.hay_error = False
@@ -26,6 +37,7 @@ class MiErrorListener(ErrorListener):
         self.hay_error = True
 
 
+#  RECORRER TOKENS
 def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
     if token.type == Token.EOF:
         return
@@ -52,37 +64,75 @@ def procesar_tokens_recursivo(lexer, token, lista, errores_lexicos):
     siguiente = lexer.nextToken()
     procesar_tokens_recursivo(lexer, siguiente, lista, errores_lexicos)
 
+
+#  EQUIVALENTE C++ (CON COMENTARIOS)
 def obtener_equivalente(tipo, lexema):
+
+    lex = lexema.lower()
+
     equivalencias = {
-        "PRINCIPAL": "int main",
-        "WI":        "if",
-        "OTRE":      "else",
-        "PENDAN":    "while",
-        "RETUR":     "return",
-        "ONTIE":     "int",
-        "FLOTE":     "float",
-        "DUBLE":     "double",
-        "SHEN":      "char*",
-        "AMPRIMI":   "printf",
-        "IGUAL":     "=",
-        "PUNTOCOMA": ";",
-        "PARENTESIS_ABIERTO": "(",
-        "PARENTESIS_CERRADO": ")",
-        "LLAVE_ABIERTA": "{",
-        "LLAVE_CERRADA": "}",
-        "OP":        "operador",
-        "STRING":    "literal string",
+        # estructura
+        "principal": "int main",
+        "wi": "if",
+        "otre": "else",
+        "pendan": "while",
+        "retur": "return",
+
+        # tipos
+        "ontie": "int",
+        "flote": "float",
+        "duble": "double",
+        "shen": "string",
+
+        # funciones
+        "amprimi": "cout",
+
+        # símbolos
+        "iyal": "=",
+        "puavir": ";",
+        "pasuvert": "(",
+        "pasferme": ")",
+        "cleuvert": "{",
+        "cleferme": "}",
+
+        # operadores
+        "plu": "+",
+        "moan": "-",
+        "par": "*",
+        "bag": "/",
+        "minog": "<",
+        "aye": ">",
+        "compag": "==",
     }
 
-    if tipo in equivalencias:
-        return equivalencias[tipo]
+    # TRADUCCIÓN POR LEXEMA
+    if lex in equivalencias:
+        return equivalencias[lex]
 
-    if tipo in ["ID", "INT", "FLOAT_LIT"]:
+    # COMENTARIOS → // texto
+    if tipo == "COMENTER" or lex.startswith("comenter"):
+        # quitar la palabra "comenter"
+        contenido = lexema[len("comenter"):].strip()
+        return f"// {contenido}"
+
+    # números
+    if tipo in ["INT", "FLOAT_LIT"]:
+        return lexema
+
+    # strings
+    if tipo == "STRING":
+        return lexema
+
+    # identificadores
+    if tipo == "ID":
         return lexema
 
     return ""
 
+
+#  MAIN
 def main():
+
     os.makedirs(os.path.join(ruta_raiz, "reportes_html"), exist_ok=True)
 
     ruta_salida = os.path.join(ruta_raiz, "reportes_html", "reporte_tokens.html")
@@ -90,7 +140,10 @@ def main():
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
-    input_stream = FileStream(os.path.join(ruta_raiz, "programa.leng"))
+    archivo = os.path.join(ruta_raiz, "programa.leng")
+
+    # LEXER
+    input_stream = FileStream(archivo, encoding="utf-8")
     lexer = LenguajeLexer(input_stream)
 
     tokens_lista = []
@@ -98,7 +151,8 @@ def main():
 
     procesar_tokens_recursivo(lexer, lexer.nextToken(), tokens_lista, errores_lexicos)
 
-    input_stream2 = FileStream(os.path.join(ruta_raiz, "programa.leng"))
+    # PARSER
+    input_stream2 = FileStream(archivo, encoding="utf-8")
     lexer2 = LenguajeLexer(input_stream2)
     stream = CommonTokenStream(lexer2)
     parser = LenguajeParser(stream)
@@ -109,6 +163,7 @@ def main():
 
     parser.programa()
 
+    # VALIDACIONES
     if errores_lexicos:
         print("0 tokens (error lexico)")
         return
@@ -117,6 +172,7 @@ def main():
         print("0 tokens (error sintactico)")
         return
 
+    # HTML BASE
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "tokens_base.html")
 
     if not os.path.exists(ruta_base):
@@ -126,10 +182,12 @@ def main():
     with open(ruta_base, "r", encoding="utf-8") as f:
         html = f.read()
 
+    # GENERAR FILAS
     filas = ""
 
     for t in tokens_lista:
         equivalente = obtener_equivalente(t['tipo'], t['lexema'])
+
         filas += f"""
         <tr>
             <td>{t['tipo']}</td>
@@ -140,11 +198,13 @@ def main():
         </tr>
         """
 
+    # INSERTAR EN HTML
     html = html.replace(
         '<tbody id="tbody">',
         f'<tbody id="tbody">{filas}'
     )
 
+    # GUARDAR 
     with open(ruta_salida, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -158,5 +218,6 @@ def main():
         print(f"{cantidad} tokens encontrados")
 
 
+#  RUN
 if __name__ == "__main__":
     main()
