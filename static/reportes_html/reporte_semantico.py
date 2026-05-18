@@ -30,26 +30,23 @@ def main():
 
     errores = semantico.errores
 
-    # ---- Construir filas HTML ----
-    if not errores:
-        filas = ""
-    else:
-        filas = ""
-        for e in errores:
-            filas += f"""
-            <tr>
-                <td>{e['linea']}</td>
-                <td>{e['columna']}</td>
-                <td>{e['mensaje']}</td>
-                <td>{e['tipo']}</td>
-            </tr>
-            """
+    # Construir filas HTML
+    filas = ""
+    for e in errores:
+        filas += f"""
+        <tr>
+            <td>{e['linea']}</td>
+            <td>{e['columna']}</td>
+            <td>{e['mensaje']}</td>
+            <td>{e['tipo']}</td>
+        </tr>
+        """
 
-    # ---- Cargar base HTML ----
+    # Cargar base HTML
     ruta_base = os.path.join(ruta_raiz, "reportes_html", "semantico_base.html")
 
     if not os.path.exists(ruta_base):
-        print("SEMANTICO: No se encontró semantico_base.html")
+        print("SEMANTICO: No se encontro semantico_base.html")
         return
 
     with open(ruta_base, "r", encoding="utf-8") as f:
@@ -63,11 +60,11 @@ def main():
 
     total = len(errores)
     if total == 0:
-        print("Sin errores semánticos")
+        print("Sin errores semanticos")
     elif total == 1:
-        print("1 error semántico encontrado")
+        print("1 error semantico encontrado")
     else:
-        print(f"{total} errores semánticos encontrados")
+        print(f"{total} errores semanticos encontrados")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import sys
 import os
 import difflib
+import re
 
 ruta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, ruta_raiz)
@@ -20,10 +21,94 @@ VOCABULARIO = [
     "plu", "moan", "par", "bag", "minog", "aye", "compag"
 ]
 
+# Mapeo de tokens ANTLR a nombres legibles en espanol
+NOMBRES_TOKENS = {
+    "PRINCIPAL":           "principal",
+    "WI":                  "wi (if)",
+    "OTRE":                "otre (else)",
+    "PENDAN":              "pendan (while)",
+    "RETUR":               "retur (return)",
+    "ONTIE":               "ontie (int)",
+    "FLOTE":               "flote (float)",
+    "DUBLE":               "duble (double)",
+    "SHEN":                "shen (varchar)",
+    "AMPRIMI":             "amprimi (print)",
+    "IGUAL":               "iyal (=)",
+    "PUNTOCOMA":           "puavir (;)",
+    "PARENTESIS_ABIERTO":  "pasuvert ((",
+    "PARENTESIS_CERRADO":  "pasferme ())",
+    "LLAVE_ABIERTA":       "cleuvert ({)",
+    "LLAVE_CERRADA":       "cleferme (})",
+    "OP":                  "operador",
+    "ID":                  "identificador",
+    "INT":                 "numero entero",
+    "FLOAT_LIT":           "numero decimal",
+    "STRING":              "cadena de texto",
+    "EOF":                 "fin de archivo",
+}
+
 
 def sugerir_palabra(lexema):
     sugerencias = difflib.get_close_matches(lexema, VOCABULARIO, n=1, cutoff=0.4)
     return sugerencias[0] if sugerencias else ""
+
+
+def traducir_token(token_str):
+    # quita comillas simples si las tiene
+    limpio = token_str.strip("'")
+    return NOMBRES_TOKENS.get(limpio, token_str)
+
+
+def traducir_conjunto(conjunto_str):
+    # traduce listas como {'puavir', 'cleferme'} a espanol
+    tokens = re.findall(r"'([^']+)'", conjunto_str)
+    if not tokens:
+        return conjunto_str
+    traducidos = [NOMBRES_TOKENS.get(t, t) for t in tokens]
+    return "{" + ", ".join(traducidos) + "}"
+
+
+def traducir_mensaje_antlr(msg):
+    # mismatched input 'X' expecting Y
+    m = re.match(r"mismatched input '(.+?)' expecting (.+)", msg)
+    if m:
+        encontrado  = traducir_token(m.group(1))
+        esperado    = traducir_conjunto(m.group(2))
+        return f"Token inesperado '{encontrado}', se esperaba: {esperado}"
+
+    # extraneous input 'X' expecting Y
+    m = re.match(r"extraneous input '(.+?)' expecting (.+)", msg)
+    if m:
+        encontrado = traducir_token(m.group(1))
+        esperado   = traducir_conjunto(m.group(2))
+        return f"Entrada extra '{encontrado}', se esperaba: {esperado}"
+
+    # no viable alternative at input 'X'
+    m = re.match(r"no viable alternative at input '(.+?)'", msg)
+    if m:
+        return f"Construccion invalida en '{m.group(1)}'"
+
+    # missing X at Y
+    m = re.match(r"missing (.+?) at '(.+?)'", msg)
+    if m:
+        faltante  = traducir_conjunto(m.group(1))
+        en_donde  = traducir_token(m.group(2))
+        return f"Falta {faltante} antes de '{en_donde}'"
+
+    # token recognition error at: 'X'
+    m = re.match(r"token recognition error at: '(.+?)'", msg)
+    if m:
+        return f"Simbolo no reconocido: '{m.group(1)}'"
+
+    # input mismatch
+    if "input mismatch" in msg.lower():
+        return "Error de sintaxis: token fuera de lugar"
+
+    # EOF
+    if "EOF" in msg:
+        msg = msg.replace("EOF", "fin de archivo")
+
+    return msg
 
 
 class MiErrorListener(ErrorListener):
@@ -31,14 +116,19 @@ class MiErrorListener(ErrorListener):
         self.errores = []
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        # traducir mensaje de ingles a espanol
+        mensaje = traducir_mensaje_antlr(msg)
+
+        # agregar sugerencia si hay un lexema cercano al vocabulario
         if offendingSymbol is not None:
             sugerencia = sugerir_palabra(offendingSymbol.text)
             if sugerencia:
-                msg += f" | Sugerencia: '{sugerencia}'"
+                mensaje += f" | Sugerencia: '{sugerencia}'"
+
         self.errores.append({
             "linea":   line,
             "columna": column,
-            "mensaje": msg
+            "mensaje": mensaje
         })
 
 
@@ -102,7 +192,7 @@ def main():
             <tr>
                 <td>{e['linea']}</td>
                 <td>{e['columna']}</td>
-                <td>{e['lexema']}</td>
+                <td>Simbolo no reconocido: '{e['lexema']}'</td>
                 <td>Lexico</td>
             </tr>"""
         return html

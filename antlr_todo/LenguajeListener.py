@@ -89,12 +89,111 @@ class LenguajeListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LenguajeParser#ciclo_fer_pendan.
+    def enterCiclo_fer_pendan(self, ctx:LenguajeParser.Ciclo_fer_pendanContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#ciclo_fer_pendan.
+    def exitCiclo_fer_pendan(self, ctx:LenguajeParser.Ciclo_fer_pendanContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#ciclo_pur.
+    def enterCiclo_pur(self, ctx:LenguajeParser.Ciclo_purContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#ciclo_pur.
+    def exitCiclo_pur(self, ctx:LenguajeParser.Ciclo_purContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#pur_init.
+    def enterPur_init(self, ctx:LenguajeParser.Pur_initContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#pur_init.
+    def exitPur_init(self, ctx:LenguajeParser.Pur_initContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#pur_step.
+    def enterPur_step(self, ctx:LenguajeParser.Pur_stepContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#pur_step.
+    def exitPur_step(self, ctx:LenguajeParser.Pur_stepContext):
+        pass
+
+
     # Enter a parse tree produced by LenguajeParser#retorno.
     def enterRetorno(self, ctx:LenguajeParser.RetornoContext):
         pass
 
     # Exit a parse tree produced by LenguajeParser#retorno.
     def exitRetorno(self, ctx:LenguajeParser.RetornoContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#funcion_def.
+    def enterFuncion_def(self, ctx:LenguajeParser.Funcion_defContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#funcion_def.
+    def exitFuncion_def(self, ctx:LenguajeParser.Funcion_defContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#tipo_retorno.
+    def enterTipo_retorno(self, ctx:LenguajeParser.Tipo_retornoContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#tipo_retorno.
+    def exitTipo_retorno(self, ctx:LenguajeParser.Tipo_retornoContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#parametros.
+    def enterParametros(self, ctx:LenguajeParser.ParametrosContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#parametros.
+    def exitParametros(self, ctx:LenguajeParser.ParametrosContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#parametro.
+    def enterParametro(self, ctx:LenguajeParser.ParametroContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#parametro.
+    def exitParametro(self, ctx:LenguajeParser.ParametroContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#llamada_funcion.
+    def enterLlamada_funcion(self, ctx:LenguajeParser.Llamada_funcionContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#llamada_funcion.
+    def exitLlamada_funcion(self, ctx:LenguajeParser.Llamada_funcionContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#argumentos.
+    def enterArgumentos(self, ctx:LenguajeParser.ArgumentosContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#argumentos.
+    def exitArgumentos(self, ctx:LenguajeParser.ArgumentosContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#llamada_funcion_stmt.
+    def enterLlamada_funcion_stmt(self, ctx:LenguajeParser.Llamada_funcion_stmtContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#llamada_funcion_stmt.
+    def exitLlamada_funcion_stmt(self, ctx:LenguajeParser.Llamada_funcion_stmtContext):
         pass
 
 

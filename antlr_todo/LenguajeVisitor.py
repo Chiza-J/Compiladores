@@ -54,8 +54,63 @@ class LenguajeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by LenguajeParser#ciclo_fer_pendan.
+    def visitCiclo_fer_pendan(self, ctx:LenguajeParser.Ciclo_fer_pendanContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#ciclo_pur.
+    def visitCiclo_pur(self, ctx:LenguajeParser.Ciclo_purContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#pur_init.
+    def visitPur_init(self, ctx:LenguajeParser.Pur_initContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#pur_step.
+    def visitPur_step(self, ctx:LenguajeParser.Pur_stepContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by LenguajeParser#retorno.
     def visitRetorno(self, ctx:LenguajeParser.RetornoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#funcion_def.
+    def visitFuncion_def(self, ctx:LenguajeParser.Funcion_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#tipo_retorno.
+    def visitTipo_retorno(self, ctx:LenguajeParser.Tipo_retornoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#parametros.
+    def visitParametros(self, ctx:LenguajeParser.ParametrosContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#parametro.
+    def visitParametro(self, ctx:LenguajeParser.ParametroContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#llamada_funcion.
+    def visitLlamada_funcion(self, ctx:LenguajeParser.Llamada_funcionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#argumentos.
+    def visitArgumentos(self, ctx:LenguajeParser.ArgumentosContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#llamada_funcion_stmt.
+    def visitLlamada_funcion_stmt(self, ctx:LenguajeParser.Llamada_funcion_stmtContext):
         return self.visitChildren(ctx)
 
 

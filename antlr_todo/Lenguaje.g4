@@ -1,90 +1,154 @@
 grammar Lenguaje;
 
 //     PARSER
-// Programa base que genera toda la lista de instrucciones 
-programa 
+// Programa base
+programa
     : PRINCIPAL PARENTESIS_ABIERTO PARENTESIS_CERRADO bloque EOF
     ;
 
-//  Bloque {....}
+// Bloque {....}
 bloque
     : LLAVE_ABIERTA instrucciones LLAVE_CERRADA
     ;
 
 // Lista de instrucciones
-instrucciones 
+instrucciones
     : (instruccion)*
     ;
 
-//  Tipos de instrucciones
+// Tipos de instrucciones
 instruccion
     : declaracion
     | asignacion
     | impresion
     | condicion_if
     | ciclo_while
+    | ciclo_fer_pendan
+    | ciclo_pur
+    | llamada_funcion_stmt
     | retorno
     | errorInstr
     ;
 
-
-//  Declaracion de variables 
-//  int x = 10;
-//  cada tipo usa su propia expresión para validar que el valor corresponde al tipo declarado
-declaracion 
-    : ONTIE ID IGUAL expr_entera PUNTOCOMA   // ontie solo acepta enteros
-    | FLOTE ID IGUAL expr_decimal PUNTOCOMA  // flote acepta enteros o decimales
-    | DUBLE ID IGUAL expr_decimal PUNTOCOMA  // duble acepta enteros o decimales
-    | SHEN ID IGUAL expr_string PUNTOCOMA // shen para acerptar CHAR
+// Declaracion de variables
+declaracion
+    : ONTIE ID IGUAL expr_entera  PUNTOCOMA
+    | FLOTE ID IGUAL expr_decimal PUNTOCOMA
+    | DUBLE ID IGUAL expr_decimal PUNTOCOMA
+    | SHEN  ID IGUAL expr_string  PUNTOCOMA
     ;
 
-//  Asignacion x = 5;
+// Asignacion
 asignacion
     : ID IGUAL expr PUNTOCOMA
     ;
 
-//  Print y en C es printf(x);
+// Print  amprimi(expr) puavir
 impresion
     : AMPRIMI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO PUNTOCOMA
     ;
 
-//  if
-// if (cond) {} else {}
+// if / else
 condicion_if
-    : WI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque 
-     (OTRE bloque)?
+    : WI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque
+      (OTRE bloque)?
     ;
 
-//  while 
-//  while (cond) { }
+// while  pendan(expr) { }
 ciclo_while
     : PENDAN PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque
     ;
 
+// do-while  fer_pendan { } pendan(expr) puavir
+ciclo_fer_pendan
+    : FER_PENDAN bloque PENDAN PARENTESIS_ABIERTO expr PARENTESIS_CERRADO PUNTOCOMA
+    ;
+
+// for  pur(init puavir cond puavir step) { }
+ciclo_pur
+    : PUR PARENTESIS_ABIERTO
+        pur_init PUNTOCOMA
+        expr     PUNTOCOMA
+        pur_step
+      PARENTESIS_CERRADO bloque
+    ;
+
+// inicializacion del for sin puavir final
+pur_init
+    : ONTIE ID IGUAL expr_entera
+    | FLOTE ID IGUAL expr_decimal
+    | DUBLE ID IGUAL expr_decimal
+    | SHEN  ID IGUAL expr_string
+    | ID    IGUAL   expr
+    ;
+
+// incremento del for sin puavir final
+pur_step
+    : ID IGUAL expr
+    ;
+
 // return
-// return x;
 retorno
     : RETUR expr? PUNTOCOMA
     ;
 
+// Definicion de funcion
+// funcion ontie suma pasuvert ontie a puavir ontie b pasferme cleuvert retur a plu b puavir cleferme
+// funcion vacio saludar pasuvert pasferme cleuvert amprimi pasuvert "hola" pasferme puavir cleferme
+funcion_def
+    : FUNCION tipo_retorno ID
+        PARENTESIS_ABIERTO parametros PARENTESIS_CERRADO
+        bloque
+    ;
 
-// Expresiones básicas
+tipo_retorno
+    : ONTIE | FLOTE | DUBLE | SHEN | VACIO
+    ;
+
+// Parametros separados por puavir
+parametros
+    : (parametro (PUNTOCOMA parametro)*)?
+    ;
+
+parametro
+    : ONTIE ID
+    | FLOTE ID
+    | DUBLE ID
+    | SHEN  ID
+    ;
+
+// Llamada a funcion como expresion: suma pasuvert 1 puavir 2 pasferme
+llamada_funcion
+    : ID PARENTESIS_ABIERTO argumentos PARENTESIS_CERRADO
+    ;
+
+argumentos
+    : (expr (PUNTOCOMA expr)*)?
+    ;
+
+// Llamada a funcion como instruccion (procedimiento)
+llamada_funcion_stmt
+    : llamada_funcion PUNTOCOMA
+    ;
+
+// Expresiones generales
 expr
     : <assoc=left> expr OP expr
+    | llamada_funcion
     | INT
     | FLOAT_LIT
     | STRING
     | ID
     ;
 
-// No permite FLOAT_LIT — si se intenta asignar un decimal a ontie, será un error sintáctico
+// Solo enteros
 expr_entera
     : <assoc=left> expr_entera OP expr_entera
     | INT
     | ID
     ;
 
-// Permite tanto INT como FLOAT_LIT
+// Enteros o decimales
 expr_decimal
     : <assoc=left> expr_decimal OP expr_decimal
     | FLOAT_LIT
@@ -98,73 +162,48 @@ expr_string
     | ID
     ;
 
-// Tipos de datos del lenguaje
+// Tipos
 tipo : ONTIE | FLOTE | DUBLE | SHEN;
 
-// Manejo de error sintactico
+// Error sintactico
 errorInstr : ERROR_CHAR+;
 
-//       LEXER 
 
-// PALABRAS RESERVADAS (PRIMERO)
+//       LEXER
 
-// marcar inicio del programa
-PRINCIPAL : 'principal';
+PRINCIPAL  : 'principal';
+WI         : 'wi';
+OTRE       : 'otre';
+PENDAN     : 'pendan';
+FER_PENDAN : 'fer_pendan';
+PUR        : 'pur';
+RETUR      : 'retur';
+FUNCION    : 'funcion';
+VACIO      : 'vacio';
 
-//  if
-WI : 'wi';
+ONTIE : 'ontie';
+FLOTE : 'flote';
+DUBLE : 'duble';
+SHEN  : 'shen';
 
-//  else
-OTRE : 'otre';
+AMPRIMI : 'amprimi';
 
-//  while
-PENDAN : 'pendan';
-
-//  return
-RETUR : 'retur';
-
-//          Tipos
-ONTIE    : 'ontie'; // enteros
-FLOTE    : 'flote'; //flotantes
-DUBLE    : 'duble'; //decimales
-SHEN     : 'shen';
-
-//      Funiones
-AMPRIMI  : 'amprimi'; //print
-
-// SÍMBOLOS (IMPORTANTE)
-IGUAL      : 'iyal';
-PUNTOCOMA  : 'puavir';
+IGUAL              : 'iyal';
+PUNTOCOMA          : 'puavir';
 PARENTESIS_ABIERTO : 'pasuvert';
 PARENTESIS_CERRADO : 'pasferme';
-LLAVE_ABIERTA : 'cleuvert';
-LLAVE_CERRADA : 'cleferme';
+LLAVE_ABIERTA      : 'cleuvert';
+LLAVE_CERRADA      : 'cleferme';
 
-// TOKENS
-//  Operadores
-OP : 'plu' | 'moan' | 'par' | 'bag' | 'minog' | 'aye' | 'compag' ;
-//      +     -        *       /       <         >       ==   
-//  Identificadores
-ID  : [a-zA-Z_][a-zA-Z_0-9]*;
+OP : 'plu' | 'moan' | 'par' | 'bag' | 'minog' | 'aye' | 'compag';
 
-//  Numeros enteros
-INT : [0-9]+;
-
-// token para números decimales/flotantes (ej: 3.14, 0.5, 2.0)
-// Se define ANTES de INT para que ANTLR lo reconozca con mayor prioridad cuando hay punto decimal
+ID        : [a-zA-Z_][a-zA-Z_0-9]*;
 FLOAT_LIT : [0-9]+ '.' [0-9]+;
-
-//tipo STRING
+INT       : [0-9]+;
 STRING    : '"' ~["\r\n]* '"';
 
-// IGNORAR ESPACIOS
-WS : [ \t\r\n]+ -> skip;
+WS           : [ \t\r\n]+                 -> skip;
+COMMENT      : 'lementer' .*? 'blomenter' -> channel(HIDDEN);
+LINE_COMMENT : 'comenter' ~[\r\n]*        -> channel(HIDDEN);
 
-//Comentario de bloque
-COMMENT: 'lementer' .*? 'blomenter' -> channel(HIDDEN) ;
-
-//Comentario de linea
-LINE_COMMENT: 'comenter' ~[\r\n]* -> channel(HIDDEN) ;
-
-// ERROR (SIEMPRE AL FINAL)
-ERROR_CHAR : . ;
+ERROR_CHAR : .;
