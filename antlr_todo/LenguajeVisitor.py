@@ -44,6 +44,11 @@ class LenguajeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by LenguajeParser#entrada.
+    def visitEntrada(self, ctx:LenguajeParser.EntradaContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by LenguajeParser#condicion_if.
     def visitCondicion_if(self, ctx:LenguajeParser.Condicion_ifContext):
         return self.visitChildren(ctx)
@@ -71,6 +76,36 @@ class LenguajeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by LenguajeParser#pur_step.
     def visitPur_step(self, ctx:LenguajeParser.Pur_stepContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#condicion_switch.
+    def visitCondicion_switch(self, ctx:LenguajeParser.Condicion_switchContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#caso_switch.
+    def visitCaso_switch(self, ctx:LenguajeParser.Caso_switchContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#caso_default.
+    def visitCaso_default(self, ctx:LenguajeParser.Caso_defaultContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#sentencia_pos.
+    def visitSentencia_pos(self, ctx:LenguajeParser.Sentencia_posContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#sentencia_contine.
+    def visitSentencia_contine(self, ctx:LenguajeParser.Sentencia_contineContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by LenguajeParser#sentencia_su.
+    def visitSentencia_su(self, ctx:LenguajeParser.Sentencia_suContext):
         return self.visitChildren(ctx)
 
 

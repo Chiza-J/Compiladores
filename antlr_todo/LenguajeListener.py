@@ -71,6 +71,15 @@ class LenguajeListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by LenguajeParser#entrada.
+    def enterEntrada(self, ctx:LenguajeParser.EntradaContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#entrada.
+    def exitEntrada(self, ctx:LenguajeParser.EntradaContext):
+        pass
+
+
     # Enter a parse tree produced by LenguajeParser#condicion_if.
     def enterCondicion_if(self, ctx:LenguajeParser.Condicion_ifContext):
         pass
@@ -122,6 +131,60 @@ class LenguajeListener(ParseTreeListener):
 
     # Exit a parse tree produced by LenguajeParser#pur_step.
     def exitPur_step(self, ctx:LenguajeParser.Pur_stepContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#condicion_switch.
+    def enterCondicion_switch(self, ctx:LenguajeParser.Condicion_switchContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#condicion_switch.
+    def exitCondicion_switch(self, ctx:LenguajeParser.Condicion_switchContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#caso_switch.
+    def enterCaso_switch(self, ctx:LenguajeParser.Caso_switchContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#caso_switch.
+    def exitCaso_switch(self, ctx:LenguajeParser.Caso_switchContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#caso_default.
+    def enterCaso_default(self, ctx:LenguajeParser.Caso_defaultContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#caso_default.
+    def exitCaso_default(self, ctx:LenguajeParser.Caso_defaultContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#sentencia_pos.
+    def enterSentencia_pos(self, ctx:LenguajeParser.Sentencia_posContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#sentencia_pos.
+    def exitSentencia_pos(self, ctx:LenguajeParser.Sentencia_posContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#sentencia_contine.
+    def enterSentencia_contine(self, ctx:LenguajeParser.Sentencia_contineContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#sentencia_contine.
+    def exitSentencia_contine(self, ctx:LenguajeParser.Sentencia_contineContext):
+        pass
+
+
+    # Enter a parse tree produced by LenguajeParser#sentencia_su.
+    def enterSentencia_su(self, ctx:LenguajeParser.Sentencia_suContext):
+        pass
+
+    # Exit a parse tree produced by LenguajeParser#sentencia_su.
+    def exitSentencia_su(self, ctx:LenguajeParser.Sentencia_suContext):
         pass
 
 
