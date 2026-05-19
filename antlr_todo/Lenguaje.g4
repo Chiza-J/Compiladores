@@ -194,6 +194,7 @@ expr
 // solo enteros
 expr_entera
     : <assoc=left> expr_entera OP expr_entera
+    | llamada_funcion
     | INT
     | ID
     ;
@@ -201,6 +202,7 @@ expr_entera
 // enteros o decimales
 expr_decimal
     : <assoc=left> expr_decimal OP expr_decimal
+    | llamada_funcion
     | FLOAT_LIT
     | INT
     | ID
