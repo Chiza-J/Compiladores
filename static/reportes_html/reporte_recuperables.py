@@ -10,9 +10,11 @@ from antlr_todo.LenguajeLexer import LenguajeLexer
 
 
 VOCABULARIO = [
+    "principal", "wi", "otre", "pendan", "fer_pendan", "pur",
+    "shangshe", "ca", "difu", "pos", "contine", "su",
+    "retur", "funcion", "vid", "lirf",
     "ontie", "flote", "duble", "shen",
-    "wi", "otre", "pendan", "retur",
-    "amprimi", "principal",
+    "amprimi",
     "iyal", "puavir", "pasuvert", "pasferme", "cleuvert", "cleferme",
     "plu", "moan", "par", "bag", "minog", "aye", "compag"
 ]
@@ -40,7 +42,6 @@ def procesar_tokens(lexer):
                     "lexema":     lexema,
                     "sugerencia": sugerencia
                 })
-
         elif tipo == "ID":
             sugerencia = sugerir_palabra(lexema)
             if sugerencia:
@@ -86,7 +87,13 @@ def main():
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_recuperables.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"{len(recuperables)} recuperables encontrados")
+    total = len(recuperables)
+    if total == 0:
+        print("Sin recuperables")
+    elif total == 1:
+        print("1 recuperable encontrado")
+    else:
+        print(f"{total} recuperables encontrados")
 
 
 if __name__ == "__main__":

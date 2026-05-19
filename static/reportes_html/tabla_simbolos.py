@@ -21,21 +21,17 @@ class MiErrorListener(ErrorListener):
 class TablaSimbolosVisitor(ParseTreeVisitor):
 
     def __init__(self):
-        self.tabla = {}
+        self.tabla    = {}
         self.historial = []
         self._scope_stack = ['global']
-        self._contexto = []
-        self.errores = []
-
-    def _scope_actual(self):
-        return ' > '.join(self._scope_stack)
+        self._contexto    = []
+        self.errores      = []
 
     def _nivel_scope(self):
         return len(self._scope_stack) - 1
 
     def _scope_legible(self):
-        nivel = self._nivel_scope()
-        if nivel == 0:
+        if self._nivel_scope() == 0:
             return 'global'
         ctx = self._contexto[-1] if self._contexto else 'bloque'
         return f'local ({ctx})'
@@ -43,17 +39,17 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
     def _agregar_evento(self, nombre, evento, linea, col, valor=None):
         info = self.tabla.get(nombre, {})
         self.historial.append({
-            'nombre':        nombre,
-            'tipo':          info.get('tipo', '?'),
-            'scope':         info.get('scope', self._scope_legible()),
-            'nivel':         info.get('nivel', self._nivel_scope()),
-            'evento':        evento,
-            'valor':         valor if valor is not None else '—',
-            'inicializado':  info.get('inicializado', False),
-            'veces_asignada':info.get('veces_asignada', 0),
-            'veces_usada':   info.get('veces_usada', 0),
-            'linea':         linea,
-            'columna':       col,
+            'nombre':         nombre,
+            'tipo':           info.get('tipo', '?'),
+            'scope':          info.get('scope', self._scope_legible()),
+            'nivel':          info.get('nivel', self._nivel_scope()),
+            'evento':         evento,
+            'valor':          valor if valor is not None else '-',
+            'inicializado':   info.get('inicializado', False),
+            'veces_asignada': info.get('veces_asignada', 0),
+            'veces_usada':    info.get('veces_usada', 0),
+            'linea':          linea,
+            'columna':        col,
         })
 
     def visitPrograma(self, ctx):
@@ -66,31 +62,28 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         self._scope_stack.pop()
         return None
 
-    # ── declaración: ontie/flote/duble/shen x iyal expr ──────
     def visitDeclaracion(self, ctx: LenguajeParser.DeclaracionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
 
-        # ← detectar tipo incluyendo shen
         if ctx.ONTIE():
             tipo = 'ontie'
         elif ctx.FLOTE():
             tipo = 'flote'
-        elif ctx.SHEN():           #  NUEVO
+        elif ctx.SHEN():
             tipo = 'shen'
         else:
             tipo = 'duble'
 
-        # ← extraer valor inicial según el tipo de expresión
         if ctx.expr_entera():
             valor_txt = ctx.expr_entera().getText()
         elif ctx.expr_decimal():
             valor_txt = ctx.expr_decimal().getText()
-        elif ctx.expr_string():    # ← NUEVO
+        elif ctx.expr_string():
             valor_txt = ctx.expr_string().getText()
         else:
-            valor_txt = '—'
+            valor_txt = '-'
 
         if nombre in self.tabla:
             self.errores.append({
@@ -100,30 +93,23 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
             })
             return self.visitChildren(ctx)
 
-        scope = self._scope_legible()
-        nivel = self._nivel_scope()
-
         self.tabla[nombre] = {
             'tipo':           tipo,
-            'scope':          scope,
-            'nivel':          nivel,
+            'scope':          self._scope_legible(),
+            'nivel':          self._nivel_scope(),
             'inicializado':   True,
             'valor_inicial':  valor_txt,
             'veces_asignada': 1,
             'veces_usada':    0,
             'linea_decl':     linea,
         }
-
         self._agregar_evento(nombre, 'declaracion', linea, col, valor=valor_txt)
         return self.visitChildren(ctx)
 
-    # ── asignación: x iyal expr / expr_string ────────────────
     def visitAsignacion(self, ctx: LenguajeParser.AsignacionContext):
         nombre = ctx.ID().getText()
         linea  = ctx.ID().getSymbol().line
         col    = ctx.ID().getSymbol().column
-
-        # ← tomar texto correcto si es string o numérico
         valor_txt = ctx.expr().getText()
 
         if nombre in self.tabla:
@@ -145,6 +131,96 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         self.visitChildren(ctx)
         self._contexto.pop()
         return None
+
+    def visitCiclo_fer_pendan(self, ctx: LenguajeParser.Ciclo_fer_pendanContext):
+        self._contexto.append('fer_pendan')
+        self.visitChildren(ctx)
+        self._contexto.pop()
+        return None
+
+    def visitCiclo_pur(self, ctx: LenguajeParser.Ciclo_purContext):
+        self._contexto.append('pur')
+        self.visitChildren(ctx)
+        self._contexto.pop()
+        return None
+
+    def visitPur_init(self, ctx: LenguajeParser.Pur_initContext):
+        if not ctx.ID():
+            return self.visitChildren(ctx)
+        nombre = ctx.ID().getText()
+        linea  = ctx.ID().getSymbol().line
+        col    = ctx.ID().getSymbol().column
+
+        if ctx.ONTIE():
+            tipo = 'ontie'
+        elif ctx.FLOTE():
+            tipo = 'flote'
+        elif ctx.SHEN():
+            tipo = 'shen'
+        elif ctx.DUBLE():
+            tipo = 'duble'
+        else:
+            tipo = self.tabla.get(nombre, {}).get('tipo', '?')
+
+        if ctx.expr_entera():
+            valor_txt = ctx.expr_entera().getText()
+        elif ctx.expr_decimal():
+            valor_txt = ctx.expr_decimal().getText()
+        elif ctx.expr():
+            valor_txt = ctx.expr().getText()
+        else:
+            valor_txt = '-'
+
+        if nombre not in self.tabla:
+            self.tabla[nombre] = {
+                'tipo':           tipo,
+                'scope':          self._scope_legible(),
+                'nivel':          self._nivel_scope(),
+                'inicializado':   True,
+                'valor_inicial':  valor_txt,
+                'veces_asignada': 1,
+                'veces_usada':    0,
+                'linea_decl':     linea,
+            }
+            self._agregar_evento(nombre, 'declaracion', linea, col, valor=valor_txt)
+        else:
+            self.tabla[nombre]['veces_asignada'] += 1
+            self._agregar_evento(nombre, 'asignacion', linea, col, valor=valor_txt)
+
+        return self.visitChildren(ctx)
+
+    def visitCondicion_switch(self, ctx: LenguajeParser.Condicion_switchContext):
+        self._contexto.append('switch')
+        self.visitChildren(ctx)
+        self._contexto.pop()
+        return None
+
+    def visitFuncion_def(self, ctx: LenguajeParser.Funcion_defContext):
+        nombre = ctx.ID().getText()
+        linea  = ctx.ID().getSymbol().line
+        col    = ctx.ID().getSymbol().column
+        self._contexto.append(f'funcion:{nombre}')
+        self._scope_stack.append(f'funcion:{nombre}')
+        self._agregar_evento(nombre, 'funcion', linea, col)
+        self.visitChildren(ctx)
+        self._scope_stack.pop()
+        self._contexto.pop()
+        return None
+
+    def visitLlamada_funcion(self, ctx: LenguajeParser.Llamada_funcionContext):
+        nombre = ctx.ID().getText()
+        linea  = ctx.ID().getSymbol().line
+        col    = ctx.ID().getSymbol().column
+        self._agregar_evento(nombre, 'llamada', linea, col)
+        return self.visitChildren(ctx)
+
+    def visitEntrada(self, ctx: LenguajeParser.EntradaContext):
+        nombre = ctx.ID().getText()
+        linea  = ctx.ID().getSymbol().line
+        col    = ctx.ID().getSymbol().column
+        if nombre in self.tabla:
+            self._agregar_evento(nombre, 'lectura', linea, col)
+        return self.visitChildren(ctx)
 
     def visitImpresion(self, ctx: LenguajeParser.ImpresionContext):
         return self.visitChildren(ctx)
@@ -182,7 +258,6 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
                 self._agregar_evento(nombre, 'uso', linea, col)
         return self.visitChildren(ctx)
 
-    # ── uso en expr_string ────────────────────────────────────  ← NUEVO
     def visitExpr_string(self, ctx: LenguajeParser.Expr_stringContext):
         if ctx.ID():
             nombre = ctx.ID().getText()
@@ -194,9 +269,6 @@ class TablaSimbolosVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-# ─────────────────────────────────────────────────────────────
-#  MAIN
-# ─────────────────────────────────────────────────────────────
 def main():
     os.makedirs(os.path.join(ruta_raiz, 'reportes_html'), exist_ok=True)
 
@@ -206,7 +278,7 @@ def main():
     if os.path.exists(ruta_salida):
         os.remove(ruta_salida)
 
-    input_stream = FileStream(os.path.join(ruta_raiz, 'programa.leng'),encoding='utf-8')
+    input_stream = FileStream(os.path.join(ruta_raiz, 'programa.leng'), encoding='utf-8')
     lexer  = LenguajeLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = LenguajeParser(stream)
@@ -236,28 +308,29 @@ def main():
     with open(ruta_base, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    EVENTO_STYLE = {
-        'declaracion':               ('#22f08a', ''),
-        'asignacion':                ('#00d4ff', ''),
-        'uso':                       ('#f5a623', ''),
-        'asignacion (no declarada)': ('#ff4d6a', ''),
+    EVENTO_COLOR = {
+        'declaracion':               '#22f08a',
+        'asignacion':                '#00d4ff',
+        'uso':                       '#f5a623',
+        'asignacion (no declarada)': '#ff4d6a',
+        'funcion':                   '#a855f7',
+        'llamada':                   '#4f8ef7',
+        'lectura':                   '#00d4ff',
     }
 
-    # ← shen añadido con color púrpura
     TIPO_COLOR = {
         'ontie': '#4f8ef7',
         'flote': '#00d4ff',
         'duble': '#22f08a',
-        'shen':  '#a855f7',    # ← NUEVO
+        'shen':  '#a855f7',
     }
 
     filas = ''
     for i, h in enumerate(visitor.historial):
-        color_ev, _ = EVENTO_STYLE.get(h['evento'], ('#c8d8f8', ''))
-        color_tipo  = TIPO_COLOR.get(h['tipo'], '#c8d8f8')
+        color_ev   = EVENTO_COLOR.get(h['evento'], '#c8d8f8')
+        color_tipo = TIPO_COLOR.get(h['tipo'], '#c8d8f8')
         color_scope = '#a855f7' if h['nivel'] == 0 else '#f5a623'
         bg = '#0d1225' if i % 2 == 0 else '#090d1a'
-
         init_icon  = 'Si' if h['inicializado'] else 'No'
         init_color = '#22f08a' if h['inicializado'] else '#ff4d6a'
 

@@ -16,6 +16,7 @@
       --amber:        #f5a623;
       --amber-dim:    rgba(245,166,35,0.08);
       --amber-border: rgba(245,166,35,0.2);
+      --green:        #22f08a;
     }
     body {
       background: var(--bg);
@@ -26,105 +27,48 @@
     }
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background-image:
         linear-gradient(rgba(79,142,247,0.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(79,142,247,0.025) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
     }
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 22px;
-    }
+    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
     .header-icon {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      background: var(--amber-dim);
-      border: 1px solid var(--amber-border);
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--amber-dim); border: 1px solid var(--amber-border);
       display: flex; align-items: center; justify-content: center;
-      color: var(--amber);
-      flex-shrink: 0;
+      color: var(--amber); flex-shrink: 0;
     }
     .header h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--amber);
+      font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber);
     }
-    .header .subtitle {
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-      margin-top: 2px;
-    }
+    .header .subtitle { font-size: 11px; color: var(--text-dim); letter-spacing: 0.06em; margin-top: 2px; }
     .badge {
-      margin-left: auto;
-      background: var(--amber-dim);
-      border: 1px solid var(--amber-border);
-      color: var(--amber);
-      font-size: 11px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      letter-spacing: 0.05em;
+      margin-left: auto; background: var(--amber-dim); border: 1px solid var(--amber-border);
+      color: var(--amber); font-size: 11px; padding: 4px 12px;
+      border-radius: 20px; letter-spacing: 0.05em;
     }
-    .table-wrap {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
+    .table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
-    thead tr {
-      background: var(--bg-panel);
-      border-bottom: 1px solid var(--border);
-    }
+    thead tr { background: var(--bg-panel); border-bottom: 1px solid var(--border); }
     thead th {
-      padding: 10px 16px;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-align: left;
+      padding: 10px 16px; font-size: 10px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--text-muted); font-weight: 600; text-align: left;
     }
     thead th:first-child { color: var(--amber); }
-    tbody tr {
-      border-bottom: 1px solid rgba(26,35,64,0.6);
-      transition: background 0.15s;
-    }
+    tbody tr { border-bottom: 1px solid rgba(26,35,64,0.6); transition: background 0.15s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: rgba(245,166,35,0.04); }
-    tbody td {
-      padding: 9px 16px;
-      font-size: 12px;
-      color: var(--text-main);
-      line-height: 1.5;
-    }
-    tbody td:nth-child(1),
-    tbody td:nth-child(2) {
-      color: var(--text-muted);
-      font-size: 11px;
-      width: 90px;
-    }
+    tbody td { padding: 9px 16px; font-size: 12px; color: var(--text-main); line-height: 1.5; }
+    tbody td:nth-child(1), tbody td:nth-child(2) { color: var(--text-muted); font-size: 11px; width: 90px; }
     tbody td:nth-child(3) { color: var(--amber); }
-    .empty {
-      padding: 40px;
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-    }
+    tbody td:nth-child(4) { color: var(--green); }
     .no-errors {
-      padding: 40px;
-      text-align: center;
-      color: #22f08a;
-      font-size: 12px;
-      letter-spacing: 0.08em;
+      padding: 40px; text-align: center; color: var(--green);
+      font-size: 12px; letter-spacing: 0.08em;
     }
   </style>
 </head>
@@ -137,18 +81,18 @@
     </div>
     <div>
       <h1>Errores Recuperables</h1>
-      <div class="subtitle">Análisis léxico — errores recuperables</div>
+      <div class="subtitle">Analisis lexico - tokens con sugerencias</div>
     </div>
-    <div class="badge" id="count-badge">— errores</div>
+    <div class="badge" id="count-badge">errores</div>
   </div>
 
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Línea</th>
+          <th>Linea</th>
           <th>Columna</th>
-          <th>Mensaje</th>
+          <th>Lexema</th>
           <th>Sugerencia</th>
         </tr>
       </thead>
@@ -159,12 +103,11 @@
   </div>
 
   <script>
-    const rows = document.querySelectorAll('#tbody tr');
+    const rows  = document.querySelectorAll('#tbody tr');
     const badge = document.getElementById('count-badge');
     const tbody = document.getElementById('tbody');
     if (rows.length === 0) {
-      tbody.innerHTML =
-        '<tr><td colspan="3" class="no-errors">✓ &nbsp;Sin errores recuperables detectados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="no-errors">Sin errores recuperables detectados</td></tr>';
       badge.textContent = '0 errores';
     } else {
       badge.textContent = rows.length + ' error' + (rows.length !== 1 ? 'es' : '');
