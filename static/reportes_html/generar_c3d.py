@@ -11,7 +11,7 @@ from antlr_todo.LenguajeParser import LenguajeParser
 from antlr4.error.ErrorListener import ErrorListener
 from antlr_todo.AnalizadorSemantico import AnalizadorSemantico
 from antlr_todo.C3D_generador import C3DGenerador
-from antlr_todo.C3D_optimizador import C3DOptimizador
+from antlr_todo.C3d_optimizador import C3DOptimizador
 
 
 OP_CPP = {
