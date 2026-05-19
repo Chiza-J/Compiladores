@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
-  <title>Código 3 Direcciones</title>
+  <title>Codigo 3 Direcciones</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,7 +41,7 @@
       pointer-events: none;
     }
 
-    /* ── header ── */
+    /* header */
     .header {
       display: flex;
       align-items: center;
@@ -82,7 +82,60 @@
       letter-spacing: 0.05em;
     }
 
-    /* ── tabla C3D ── */
+    /* tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text-main); }
+    .tab-btn.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .stat-val.crudo  { color: var(--amber); }
+    .stat-val.opt    { color: var(--green); }
+    .stat-val.reduce { color: var(--cyan); }
+
+    /* section label */
     .section-label {
       font-family: 'Syne', sans-serif;
       font-size: 10px;
@@ -92,6 +145,8 @@
       color: var(--text-dim);
       margin-bottom: 10px;
     }
+
+    /* tabla */
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -125,14 +180,23 @@
       color: var(--text-main);
       line-height: 1.5;
     }
-    /* columna # */
     tbody td:nth-child(1) { color: var(--text-dim); font-size: 11px; width: 56px; }
-    /* columna instrucción — colores por tipo */
-    tbody td:nth-child(2) { color: var(--text-main); }
-    /* columna tipo */
     tbody td:nth-child(3) { font-size: 11px; }
 
-    /* ── bloque cpp ── */
+    /* opt badge en tabla optimizada */
+    .opt-tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: rgba(34,240,138,0.1);
+      color: var(--green);
+      letter-spacing: 0.06em;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* bloque cpp */
     .cpp-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -179,7 +243,6 @@
     }
     .compile-hint code { color: var(--cyan); }
 
-    /* ── estado vacío ── */
     .empty {
       padding: 40px;
       text-align: center;
@@ -201,52 +264,103 @@
       </svg>
     </div>
     <div>
-      <h1>Código 3 Direcciones</h1>
-      <div class="subtitle">Representación intermedia generada</div>
+      <h1>Codigo 3 Direcciones</h1>
+      <div class="subtitle">Representacion intermedia generada y optimizada</div>
     </div>
-    <div class="badge" id="count-badge">— instrucciones</div>
+    <div class="badge" id="count-badge">instrucciones</div>
   </div>
 
-  <div class="section-label">Instrucciones C3D</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Instrucción</th>
-          <th>Tipo</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <!-- rows injected by Python -->
-      </tbody>
-    </table>
+  <!-- stats bar -->
+  <div class="stats-bar">
+    <div class="stat">Crudo: <span class="stat-val crudo" id="stat-crudo">0</span></div>
+    <div class="stat">Optimizado: <span class="stat-val opt" id="stat-opt">0</span></div>
+    <div class="stat">Reduccion: <span class="stat-val reduce" id="stat-reduce">0</span></div>
   </div>
 
-  <div class="section-label">Código C++ generado</div>
-  <div class="cpp-wrap">
-    <div class="cpp-header">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-        <path d="M4 6h16M4 12h16M4 18h16" stroke="#22f08a" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <span>salida.cpp</span>
-      <span class="cpp-badge">compilable con g++</span>
-    </div>
-    <div class="cpp-body">
-      <pre id="cpp-code">— analiza primero tu código —</pre>
+  <!-- tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="cambiarTab('crudo', this)">C3D Crudo</button>
+    <button class="tab-btn"        onclick="cambiarTab('opt',   this)">C3D Optimizado</button>
+    <button class="tab-btn"        onclick="cambiarTab('cpp',   this)">C++ Generado</button>
+  </div>
+
+  <!-- panel crudo -->
+  <div class="tab-panel active" id="panel-crudo">
+    <div class="section-label">Instrucciones C3D sin optimizar</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Instruccion</th><th>Tipo</th></tr>
+        </thead>
+        <tbody id="tbody">
+          <!-- rows injected by Python -->
+        </tbody>
+      </table>
     </div>
   </div>
-  <p class="compile-hint">Para compilar: <code>g++ salida.cpp -o salida &amp;&amp; ./salida</code></p>
+
+  <!-- panel optimizado -->
+  <div class="tab-panel" id="panel-opt">
+    <div class="section-label">Instrucciones C3D optimizadas</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Instruccion</th><th>Tipo</th></tr>
+        </thead>
+        <tbody id="tbody-opt">
+          <!-- rows injected by Python -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- panel cpp -->
+  <div class="tab-panel" id="panel-cpp">
+    <div class="section-label">Codigo C++ generado desde C3D optimizado</div>
+    <div class="cpp-wrap">
+      <div class="cpp-header">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="#22f08a" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>salida.cpp</span>
+        <span class="cpp-badge">compilable con g++</span>
+      </div>
+      <div class="cpp-body">
+        <pre id="cpp-code">analiza primero tu codigo</pre>
+      </div>
+    </div>
+    <p class="compile-hint">Para compilar: <code>g++ salida.cpp -o salida &amp;&amp; ./salida</code></p>
+  </div>
 
   <script>
-    const rows  = document.querySelectorAll('#tbody tr');
-    const badge = document.getElementById('count-badge');
-    if (rows.length === 0) {
+    function cambiarTab(nombre, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + nombre).classList.add('active');
+    }
+
+    const rowsCrudo = document.querySelectorAll('#tbody tr');
+    const rowsOpt   = document.querySelectorAll('#tbody-opt tr');
+    const badge     = document.getElementById('count-badge');
+
+    const nCrudo  = rowsCrudo.length;
+    const nOpt    = rowsOpt.length;
+    const reduce  = nCrudo - nOpt;
+
+    document.getElementById('stat-crudo').textContent  = nCrudo;
+    document.getElementById('stat-opt').textContent    = nOpt;
+    document.getElementById('stat-reduce').textContent = reduce > 0 ? '-' + reduce : reduce;
+
+    badge.textContent = nCrudo + ' instruccion' + (nCrudo !== 1 ? 'es' : '');
+
+    if (rowsCrudo.length === 0) {
       document.getElementById('tbody').innerHTML =
-        '<tr><td colspan="3" class="empty">Sin instrucciones — analiza primero tu código</td></tr>';
-      badge.textContent = '0 instrucciones';
-    } else {
-      badge.textContent = rows.length + ' instrucción' + (rows.length !== 1 ? 'es' : '');
+        '<tr><td colspan="3" class="empty">Sin instrucciones — analiza primero tu codigo</td></tr>';
+    }
+    if (rowsOpt.length === 0) {
+      document.getElementById('tbody-opt').innerHTML =
+        '<tr><td colspan="3" class="empty">Sin instrucciones optimizadas</td></tr>';
     }
   </script>
 </body>

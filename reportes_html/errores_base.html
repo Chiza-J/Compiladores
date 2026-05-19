@@ -6,24 +6,33 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
       --bg:         #050810;
       --bg-panel:   #090d1a;
       --border:     #1a2340;
+
       --text-main:  #c8d8f8;
       --text-muted: #7a9cc8;
       --text-dim:   #3a4a6a;
+
       --red:        #ff4d6a;
       --red-dim:    rgba(255,77,106,0.08);
       --red-border: rgba(255,77,106,0.2);
-      --cyan:       #00d4ff;
+
       --yellow:     #f0c060;
       --yellow-dim: rgba(240,192,96,0.08);
       --yellow-border: rgba(240,192,96,0.2);
+
       --purple:     #b07aff;
       --purple-dim: rgba(176,122,255,0.08);
       --purple-border: rgba(176,122,255,0.2);
+
+      --green:      #22f08a;
+      --green-dim:  rgba(34,240,138,0.08);
+      --green-border: rgba(34,240,138,0.2);
     }
+
     body {
       background: var(--bg);
       color: var(--text-main);
@@ -31,6 +40,7 @@
       padding: 24px;
       min-height: 100vh;
     }
+
     body::before {
       content: '';
       position: fixed;
@@ -49,15 +59,20 @@
       gap: 14px;
       margin-bottom: 22px;
     }
+
     .header-icon {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       background: var(--red-dim);
       border: 1px solid var(--red-border);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--red);
       flex-shrink: 0;
     }
+
     .header h1 {
       font-family: 'Syne', sans-serif;
       font-size: 16px;
@@ -66,12 +81,14 @@
       text-transform: uppercase;
       color: var(--red);
     }
+
     .header .subtitle {
       font-size: 11px;
       color: var(--text-dim);
       letter-spacing: 0.06em;
       margin-top: 2px;
     }
+
     .badge {
       margin-left: auto;
       background: var(--red-dim);
@@ -83,12 +100,99 @@
       letter-spacing: 0.05em;
     }
 
+    /* RESUMEN */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .stat-card.lexico {
+      border-color: var(--red-border);
+    }
+
+    .stat-card.lexico::before {
+      background: var(--red);
+    }
+
+    .stat-card.sintactico {
+      border-color: var(--yellow-border);
+    }
+
+    .stat-card.sintactico::before {
+      background: var(--yellow);
+    }
+
+    .stat-card.semantico {
+      border-color: var(--purple-border);
+    }
+
+    .stat-card.semantico::before {
+      background: var(--purple);
+    }
+
+    .stat-card.total {
+      border-color: var(--green-border);
+    }
+
+    .stat-card.total::before {
+      background: var(--green);
+    }
+
+    .stat-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .stat-card.lexico .stat-value {
+      color: var(--red);
+    }
+
+    .stat-card.sintactico .stat-value {
+      color: var(--yellow);
+    }
+
+    .stat-card.semantico .stat-value {
+      color: var(--purple);
+    }
+
+    .stat-card.total .stat-value {
+      color: var(--green);
+    }
+
     /* TABS */
     .tabs-nav {
       display: flex;
       gap: 4px;
       margin-bottom: 14px;
     }
+
     .tab-btn {
       display: flex;
       align-items: center;
@@ -108,43 +212,55 @@
       position: relative;
       bottom: -1px;
     }
+
     .tab-btn .dot {
-      width: 7px; height: 7px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: currentColor;
       opacity: 0.4;
       transition: opacity 0.18s;
     }
+
     .tab-btn:hover {
       color: var(--text-muted);
     }
 
-    /* Pestaña activa por tipo */
     .tab-btn.active[data-tab="lexico"] {
       color: var(--red);
       border-color: var(--red-border);
       background: var(--red-dim);
     }
-    .tab-btn.active[data-tab="lexico"] .dot { opacity: 1; }
+
+    .tab-btn.active[data-tab="lexico"] .dot {
+      opacity: 1;
+    }
 
     .tab-btn.active[data-tab="sintactico"] {
       color: var(--yellow);
       border-color: var(--yellow-border);
       background: var(--yellow-dim);
     }
-    .tab-btn.active[data-tab="sintactico"] .dot { opacity: 1; }
+
+    .tab-btn.active[data-tab="sintactico"] .dot {
+      opacity: 1;
+    }
 
     .tab-btn.active[data-tab="semantico"] {
       color: var(--purple);
       border-color: var(--purple-border);
       background: var(--purple-dim);
     }
-    .tab-btn.active[data-tab="semantico"] .dot { opacity: 1; }
+
+    .tab-btn.active[data-tab="semantico"] .dot {
+      opacity: 1;
+    }
 
     /* PANEL */
     .tab-panel {
       display: none;
     }
+
     .tab-panel.active {
       display: block;
     }
@@ -154,16 +270,31 @@
       border: 1px solid var(--border);
       border-radius: 0 10px 10px 10px;
       overflow: hidden;
-    }
-    .tab-panel[data-panel="lexico"] .table-wrap   { border-color: var(--red-border); }
-    .tab-panel[data-panel="sintactico"] .table-wrap { border-color: var(--yellow-border); }
-    .tab-panel[data-panel="semantico"] .table-wrap  { border-color: var(--purple-border); }
-
-    table { width: 100%; border-collapse: collapse; }
-    thead tr {
       background: var(--bg-panel);
+    }
+
+    .tab-panel[data-panel="lexico"] .table-wrap {
+      border-color: var(--red-border);
+    }
+
+    .tab-panel[data-panel="sintactico"] .table-wrap {
+      border-color: var(--yellow-border);
+    }
+
+    .tab-panel[data-panel="semantico"] .table-wrap {
+      border-color: var(--purple-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: rgba(255,255,255,0.015);
       border-bottom: 1px solid var(--border);
     }
+
     thead th {
       padding: 10px 16px;
       font-size: 10px;
@@ -174,46 +305,74 @@
       text-align: left;
     }
 
-    /* Color del primer th por pestaña */
-    .tab-panel[data-panel="lexico"]    thead th:first-child { color: var(--red); }
-    .tab-panel[data-panel="sintactico"] thead th:first-child { color: var(--yellow); }
-    .tab-panel[data-panel="semantico"]  thead th:first-child { color: var(--purple); }
+    .tab-panel[data-panel="lexico"] thead th:first-child {
+      color: var(--red);
+    }
+
+    .tab-panel[data-panel="sintactico"] thead th:first-child {
+      color: var(--yellow);
+    }
+
+    .tab-panel[data-panel="semantico"] thead th:first-child {
+      color: var(--purple);
+    }
 
     tbody tr {
       border-bottom: 1px solid rgba(26,35,64,0.6);
       transition: background 0.15s;
     }
-    tbody tr:last-child { border-bottom: none; }
 
-    .tab-panel[data-panel="lexico"]    tbody tr:hover { background: rgba(255,77,106,0.04); }
-    .tab-panel[data-panel="sintactico"] tbody tr:hover { background: rgba(240,192,96,0.04); }
-    .tab-panel[data-panel="semantico"]  tbody tr:hover { background: rgba(176,122,255,0.04); }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .tab-panel[data-panel="lexico"] tbody tr:hover {
+      background: rgba(255,77,106,0.04);
+    }
+
+    .tab-panel[data-panel="sintactico"] tbody tr:hover {
+      background: rgba(240,192,96,0.04);
+    }
+
+    .tab-panel[data-panel="semantico"] tbody tr:hover {
+      background: rgba(176,122,255,0.04);
+    }
 
     tbody td {
       padding: 9px 16px;
       font-size: 12px;
       color: var(--text-main);
       line-height: 1.5;
+      vertical-align: top;
     }
+
     tbody td:nth-child(1),
     tbody td:nth-child(2) {
       color: var(--text-muted);
       font-size: 11px;
       width: 90px;
     }
-    .tab-panel[data-panel="lexico"]    tbody td:nth-child(3) { color: var(--red); }
-    .tab-panel[data-panel="sintactico"] tbody td:nth-child(3) { color: var(--yellow); }
-    .tab-panel[data-panel="semantico"]  tbody td:nth-child(3) { color: var(--purple); }
+
+    .tab-panel[data-panel="lexico"] tbody td:nth-child(3) {
+      color: var(--red);
+    }
+
+    .tab-panel[data-panel="sintactico"] tbody td:nth-child(3) {
+      color: var(--yellow);
+    }
+
+    .tab-panel[data-panel="semantico"] tbody td:nth-child(3) {
+      color: var(--purple);
+    }
 
     .no-errors {
       padding: 40px;
       text-align: center;
-      color: #22f08a;
+      color: var(--green);
       font-size: 12px;
       letter-spacing: 0.08em;
     }
 
-    /* Badge por pestaña */
     .tab-count {
       display: inline-block;
       font-size: 10px;
@@ -222,11 +381,40 @@
       margin-left: 6px;
       vertical-align: middle;
     }
-    .tab-btn[data-tab="lexico"]    .tab-count { background: var(--red-dim);    color: var(--red);    border: 1px solid var(--red-border); }
-    .tab-btn[data-tab="sintactico"] .tab-count { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow-border); }
-    .tab-btn[data-tab="semantico"]  .tab-count { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); }
+
+    .tab-btn[data-tab="lexico"] .tab-count {
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .tab-btn[data-tab="sintactico"] .tab-count {
+      background: var(--yellow-dim);
+      color: var(--yellow);
+      border: 1px solid var(--yellow-border);
+    }
+
+    .tab-btn[data-tab="semantico"] .tab-count {
+      background: var(--purple-dim);
+      color: var(--purple);
+      border: 1px solid var(--purple-border);
+    }
+
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
   </style>
 </head>
+
 <body>
 
   <!-- HEADER -->
@@ -237,28 +425,76 @@
         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
+
     <div>
       <h1>Reporte de Errores</h1>
-      <div class="subtitle">Análisis léxico · sintáctico · semántico</div>
+      <div class="subtitle">
+        Análisis léxico · sintáctico · semántico
+      </div>
     </div>
+
     <div class="badge" id="count-badge">— errores</div>
+  </div>
+
+  <!-- NUEVO RESUMEN -->
+  <div class="stats">
+
+    <div class="stat-card lexico">
+      <div class="stat-title">Errores Léxicos</div>
+      <div class="stat-value" id="stat-lexico">0</div>
+    </div>
+
+    <div class="stat-card sintactico">
+      <div class="stat-title">Errores Sintácticos</div>
+      <div class="stat-value" id="stat-sintactico">0</div>
+    </div>
+
+    <div class="stat-card semantico">
+      <div class="stat-title">Errores Semánticos</div>
+      <div class="stat-value" id="stat-semantico">0</div>
+    </div>
+
+    <div class="stat-card total">
+      <div class="stat-title">Errores Totales</div>
+      <div class="stat-value" id="stat-total">0</div>
+    </div>
+
   </div>
 
   <!-- PESTAÑAS -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="lexico" onclick="mostrarTab('lexico', this)">
-      <span class="dot"></span> Léxico <span class="tab-count" id="count-lexico">0</span>
+
+    <button class="tab-btn active"
+            data-tab="lexico"
+            onclick="mostrarTab('lexico', this)">
+      <span class="dot"></span>
+      Léxico
+      <span class="tab-count" id="count-lexico">0</span>
     </button>
-    <button class="tab-btn" data-tab="sintactico" onclick="mostrarTab('sintactico', this)">
-      <span class="dot"></span> Sintáctico <span class="tab-count" id="count-sintactico">0</span>
+
+    <button class="tab-btn"
+            data-tab="sintactico"
+            onclick="mostrarTab('sintactico', this)">
+      <span class="dot"></span>
+      Sintáctico
+      <span class="tab-count" id="count-sintactico">0</span>
     </button>
-    <button class="tab-btn" data-tab="semantico" onclick="mostrarTab('semantico', this)">
-      <span class="dot"></span> Semántico <span class="tab-count" id="count-semantico">0</span>
+
+    <button class="tab-btn"
+            data-tab="semantico"
+            onclick="mostrarTab('semantico', this)">
+      <span class="dot"></span>
+      Semántico
+      <span class="tab-count" id="count-semantico">0</span>
     </button>
+
   </div>
 
-  <!-- PANEL LÉXICO -->
-  <div class="tab-panel active" data-panel="lexico" id="panel-lexico">
+  <!-- PANEL LEXICO -->
+  <div class="tab-panel active"
+       data-panel="lexico"
+       id="panel-lexico">
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -269,15 +505,19 @@
             <th>Tipo</th>
           </tr>
         </thead>
+
         <tbody id="tbody-lexico">
-          <!-- filas inyectadas por Python -->
         </tbody>
+
       </table>
     </div>
   </div>
 
-  <!-- PANEL SINTÁCTICO -->
-  <div class="tab-panel" data-panel="sintactico" id="panel-sintactico">
+  <!-- PANEL SINTACTICO -->
+  <div class="tab-panel"
+       data-panel="sintactico"
+       id="panel-sintactico">
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -288,15 +528,19 @@
             <th>Tipo</th>
           </tr>
         </thead>
+
         <tbody id="tbody-sintactico">
-          <!-- filas inyectadas por Python -->
         </tbody>
+
       </table>
     </div>
   </div>
 
-  <!-- PANEL SEMÁNTICO -->
-  <div class="tab-panel" data-panel="semantico" id="panel-semantico">
+  <!-- PANEL SEMANTICO -->
+  <div class="tab-panel"
+       data-panel="semantico"
+       id="panel-semantico">
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -307,52 +551,92 @@
             <th>Tipo</th>
           </tr>
         </thead>
+
         <tbody id="tbody-semantico">
-          <!-- filas inyectadas por Python -->
         </tbody>
+
       </table>
     </div>
   </div>
 
   <script>
+
     function mostrarTab(nombre, btn) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('panel-' + nombre).classList.add('active');
+
+      document.querySelectorAll('.tab-panel')
+        .forEach(p => p.classList.remove('active'));
+
+      document.querySelectorAll('.tab-btn')
+        .forEach(b => b.classList.remove('active'));
+
+      document.getElementById('panel-' + nombre)
+        .classList.add('active');
+
       btn.classList.add('active');
     }
 
-    // Contar filas y actualizar badges
     const tipos = ['lexico', 'sintactico', 'semantico'];
+
     let total = 0;
 
     tipos.forEach(tipo => {
-      const tbody = document.getElementById('tbody-' + tipo);
-      const rows  = tbody ? tbody.querySelectorAll('tr') : [];
 
-      // Detectar si la única fila es el mensaje "Sin errores..."
-      const esSinErrores = rows.length === 1 &&
+      const tbody = document.getElementById('tbody-' + tipo);
+
+      const rows = tbody
+        ? tbody.querySelectorAll('tr')
+        : [];
+
+      const esSinErrores =
+        rows.length === 1 &&
         rows[0].querySelector('td[colspan]') !== null;
 
       const count = esSinErrores ? 0 : rows.length;
+
       total += count;
 
-      // Actualizar contador de pestaña
+      // tabs
       const countEl = document.getElementById('count-' + tipo);
-      if (countEl) countEl.textContent = count;
+      if (countEl)
+        countEl.textContent = count;
 
-      // Si tbody vacío, mostrar mensaje de sin errores
+      // stats cards
+      const statEl = document.getElementById('stat-' + tipo);
+      if (statEl)
+        statEl.textContent = count;
+
+      // mensaje sin errores
       if (tbody && rows.length === 0) {
-        const labels = { lexico: 'léxicos', sintactico: 'sintácticos', semantico: 'semánticos' };
-        tbody.innerHTML = `<tr><td colspan="4" class="no-errors">✓ &nbsp;Sin errores ${labels[tipo]} detectados</td></tr>`;
+
+        const labels = {
+          lexico: 'léxicos',
+          sintactico: 'sintácticos',
+          semantico: 'semánticos'
+        };
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="no-errors">
+              ✓ &nbsp;Sin errores ${labels[tipo]} detectados
+            </td>
+          </tr>
+        `;
       }
+
     });
 
-    // Badge total
+    // total cards
+    document.getElementById('stat-total').textContent = total;
+
+    // badge
     const badge = document.getElementById('count-badge');
-    badge.textContent = total === 0
+
+    badge.textContent =
+      total === 0
       ? '0 errores'
       : total + ' error' + (total !== 1 ? 'es' : '');
+
   </script>
+
 </body>
 </html>
