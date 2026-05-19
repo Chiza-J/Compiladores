@@ -5,18 +5,14 @@ from antlr_todo.LenguajeVisitor import LenguajeVisitor
 class C3DGenerador(LenguajeVisitor):
 
     def __init__(self, tabla_simbolos):
-        self.codigo      = []
-        self.temp_count  = 0
-        self.label_count = 0
-        self.tabla       = tabla_simbolos
-        # para saber a que label saltar con pos (break)
-        self._break_label_stack  = []
-        # para saber a que label saltar con contine (continue)
-        self._cont_label_stack   = []
-        # tabla de funciones definidas { nombre: label_inicio }
-        self.funciones   = {}
+        self.codigo             = []
+        self.temp_count         = 0
+        self.label_count        = 0
+        self.tabla              = tabla_simbolos  # { nombre: tipo }
+        self._break_label_stack = []
+        self._cont_label_stack  = []
 
-    #  helpers 
+    #  helpers ─
 
     def new_temp(self):
         self.temp_count += 1
@@ -32,7 +28,11 @@ class C3DGenerador(LenguajeVisitor):
     #  programa y bloques 
 
     def visitPrograma(self, ctx):
-        return self.visitChildren(ctx)
+        # primero definiciones de funciones, luego bloque principal
+        for f in ctx.funcion_def():
+            self.visit(f)
+        self.visit(ctx.bloque())
+        return None
 
     def visitBloque(self, ctx):
         return self.visitChildren(ctx)
@@ -43,10 +43,7 @@ class C3DGenerador(LenguajeVisitor):
     def visitInstruccion(self, ctx):
         return self.visitChildren(ctx)
 
-    #  declaracion 
-    # ontie x iyal expr_entera puavir
-    # flote/duble x iyal expr_decimal puavir
-    # shen x iyal expr_string puavir
+    #  declaracion ─
 
     def visitDeclaracion(self, ctx):
         var = ctx.ID().getText()
@@ -73,31 +70,28 @@ class C3DGenerador(LenguajeVisitor):
         value = self.visit(ctx.expr())
         self.emit(f"{var} = {value}")
 
-    #  impresion 
+    #  impresion ─
 
     def visitImpresion(self, ctx):
         value = self.visit(ctx.expr())
         self.emit(f"print {value}")
 
     #  entrada (lirf) 
-    # lirf(x) puavir  →  read x
 
     def visitEntrada(self, ctx):
         var = ctx.ID().getText()
         self.emit(f"read {var}")
 
-    #  if / else 
+    #  if / else ─
 
     def visitCondicion_if(self, ctx):
-        cond = self.visit(ctx.expr())
-
+        cond        = self.visit(ctx.expr())
         label_true  = self.new_label()
         label_false = self.new_label()
 
         self.emit(f"if {cond} goto {label_true}")
         self.emit(f"goto {label_false}")
         self.emit(f"{label_true}:")
-
         self.visit(ctx.bloque(0))
 
         if ctx.OTRE():
@@ -109,7 +103,7 @@ class C3DGenerador(LenguajeVisitor):
         else:
             self.emit(f"{label_false}:")
 
-    #  while 
+    #  while ─
 
     def visitCiclo_while(self, ctx):
         label_start = self.new_label()
@@ -124,17 +118,14 @@ class C3DGenerador(LenguajeVisitor):
         self.emit(f"if {cond} goto {label_body}")
         self.emit(f"goto {label_end}")
         self.emit(f"{label_body}:")
-
         self.visit(ctx.bloque())
-
         self.emit(f"goto {label_start}")
         self.emit(f"{label_end}:")
 
         self._break_label_stack.pop()
         self._cont_label_stack.pop()
 
-    #  do-while (fer_pendan) 
-    # fer_pendan { } pendan(expr) puavir
+    #  do-while (fer_pendan) ─
 
     def visitCiclo_fer_pendan(self, ctx):
         label_start = self.new_label()
@@ -146,7 +137,6 @@ class C3DGenerador(LenguajeVisitor):
 
         self.emit(f"{label_start}:")
         self.visit(ctx.bloque())
-
         self.emit(f"{label_cond}:")
         cond = self.visit(ctx.expr())
         self.emit(f"if {cond} goto {label_start}")
@@ -155,11 +145,9 @@ class C3DGenerador(LenguajeVisitor):
         self._break_label_stack.pop()
         self._cont_label_stack.pop()
 
-    #  for (pur) 
-    # pur(init puavir cond puavir step) { }
+    #  for (pur) ─
 
     def visitCiclo_pur(self, ctx):
-        # init
         self.visit(ctx.pur_init())
 
         label_start = self.new_label()
@@ -175,9 +163,7 @@ class C3DGenerador(LenguajeVisitor):
         self.emit(f"if {cond} goto {label_body}")
         self.emit(f"goto {label_end}")
         self.emit(f"{label_body}:")
-
         self.visit(ctx.bloque())
-
         self.emit(f"{label_step}:")
         self.visit(ctx.pur_step())
         self.emit(f"goto {label_start}")
@@ -198,6 +184,12 @@ class C3DGenerador(LenguajeVisitor):
             value = self.visit(ctx.expr())
         else:
             value = '0'
+        # agregar a tabla si es declaracion nueva
+        if var not in self.tabla:
+            if ctx.ONTIE():        self.tabla[var] = 'ontie'
+            elif ctx.FLOTE():      self.tabla[var] = 'flote'
+            elif ctx.DUBLE():      self.tabla[var] = 'duble'
+            elif ctx.SHEN():       self.tabla[var] = 'shen'
         self.emit(f"{var} = {value}")
 
     def visitPur_step(self, ctx):
@@ -205,30 +197,26 @@ class C3DGenerador(LenguajeVisitor):
         value = self.visit(ctx.expr())
         self.emit(f"{var} = {value}")
 
-    #  switch (shangshe) 
-    # shangshe(expr) { ca 1 { } ca 2 { } difu { } }
+    #  switch (shangshe) ─
 
     def visitCondicion_switch(self, ctx):
-        expr_val  = self.visit(ctx.expr())
-        label_end = self.new_label()
+        expr_val      = self.visit(ctx.expr())
+        label_end     = self.new_label()
+        casos         = ctx.caso_switch()
+        labels        = [self.new_label() for _ in casos]
+        label_default = self.new_label() if ctx.caso_default() else label_end
 
         self._break_label_stack.append(label_end)
 
-        # generar etiquetas para cada caso
-        casos   = ctx.caso_switch()
-        labels  = [self.new_label() for _ in casos]
-        label_default = self.new_label() if ctx.caso_default() else label_end
-
-        # cadena de comparaciones
+        # comparaciones
         for i, caso in enumerate(casos):
-            val_caso = caso.INT().getText()
+            val  = caso.INT().getText()
             temp = self.new_temp()
-            self.emit(f"{temp} = {expr_val} compag {val_caso}")
+            self.emit(f"{temp} = {expr_val} compag {val}")
             self.emit(f"if {temp} goto {labels[i]}")
-
         self.emit(f"goto {label_default}")
 
-        # cuerpo de cada caso
+        # cuerpos
         for i, caso in enumerate(casos):
             self.emit(f"{labels[i]}:")
             self.visit(caso.instrucciones())
@@ -247,23 +235,18 @@ class C3DGenerador(LenguajeVisitor):
     def visitCaso_default(self, ctx):
         return self.visitChildren(ctx)
 
-    #  break (pos) 
+    #  break / continue / goto ─
 
     def visitSentencia_pos(self, ctx):
         if self._break_label_stack:
             self.emit(f"goto {self._break_label_stack[-1]}")
 
-    #  continue (contine) 
-
     def visitSentencia_contine(self, ctx):
         if self._cont_label_stack:
             self.emit(f"goto {self._cont_label_stack[-1]}")
 
-    #  goto (su) 
-
     def visitSentencia_su(self, ctx):
-        label = ctx.ID().getText()
-        self.emit(f"goto {label}")
+        self.emit(f"goto {ctx.ID().getText()}")
 
     #  return 
 
@@ -274,75 +257,79 @@ class C3DGenerador(LenguajeVisitor):
         else:
             self.emit("return")
 
-    #  funciones 
-    # funcion ontie suma pasuvert ontie a puavir ontie b pasferme { }
+    #  funciones ─
+    # Formato C3D:
+    #   func_begin nombre
+    #   param_decl a
+    #   param_decl b
+    #   ... cuerpo ...
+    #   func_end nombre
 
     def visitFuncion_def(self, ctx):
-        nombre     = ctx.ID().getText()
-        label_func = f"func_{nombre}"
-        label_end  = self.new_label()
+        nombre = ctx.ID().getText()
 
-        self.funciones[nombre] = label_func
+        # guardar tabla y agregar params al scope local
+        tabla_anterior = dict(self.tabla)
+        for p in ctx.parametros().parametro():
+            pid = p.ID().getText()
+            if p.ONTIE():        self.tabla[pid] = 'ontie'
+            elif p.FLOTE():      self.tabla[pid] = 'flote'
+            elif p.DUBLE():      self.tabla[pid] = 'duble'
+            elif p.SHEN():       self.tabla[pid] = 'shen'
 
-        # saltar la definicion en ejecucion lineal
-        self.emit(f"goto {label_end}")
-        self.emit(f"{label_func}:")
-
-        # registrar parametros en tabla local
-        if ctx.parametros():
-            self.visit(ctx.parametros())
+        self.emit(f"func_begin {nombre}")
+        for p in ctx.parametros().parametro():
+            self.emit(f"param_decl {p.ID().getText()}")
 
         self.visit(ctx.bloque())
-        self.emit("return")
-        self.emit(f"{label_end}:")
+        self.emit(f"func_end {nombre}")
+
+        self.tabla = tabla_anterior
 
     def visitParametros(self, ctx):
-        return self.visitChildren(ctx)
+        return None
 
     def visitParametro(self, ctx):
-        # los parametros se reciben via pop de pila (convension simplificada)
-        var = ctx.ID().getText()
-        self.emit(f"param_get {var}")
+        return None
 
-    def visitLlamada_funcion_stmt(self, ctx):
-        self.visit(ctx.llamada_funcion())
+    def visitTipo_retorno(self, ctx):
+        return None
+
+    #  llamada a funcion ─
+    # Formato C3D:
+    #   arg val1
+    #   arg val2
+    #   tN = call nombre
 
     def visitLlamada_funcion(self, ctx):
         nombre = ctx.ID().getText()
 
-        # evaluar y pushear argumentos
+        # evaluar argumentos y emitir arg
         if ctx.argumentos():
-            args = ctx.argumentos()
-            for i in range(args.getChildCount()):
-                child = args.getChild(i)
-                # saltar comas (PUNTOCOMA en la gramatica)
-                if hasattr(child, 'expr'):
-                    val = self.visit(child)
-                    self.emit(f"param {val}")
-                elif hasattr(child, 'INT') or hasattr(child, 'ID') or hasattr(child, 'STRING'):
-                    val = self.visit(child)
-                    self.emit(f"param {val}")
-
-            # forma mas robusta: recorrer expr directamente
-            exprs = args.expr() if hasattr(args, 'expr') else []
-            if exprs:
-                # limpiar los param emitidos arriba y reemitir correctamente
-                # (quitar los emitidos en el loop anterior si los hubo)
-                for expr_ctx in exprs:
-                    val = self.visit(expr_ctx)
-                    self.emit(f"param {val}")
+            for expr_ctx in ctx.argumentos().expr():
+                val = self.visit(expr_ctx)
+                self.emit(f"arg {val}")
 
         temp = self.new_temp()
         self.emit(f"{temp} = call {nombre}")
         return temp
 
+    def visitLlamada_funcion_stmt(self, ctx):
+        nombre = ctx.llamada_funcion().ID().getText()
+
+        if ctx.llamada_funcion().argumentos():
+            for expr_ctx in ctx.llamada_funcion().argumentos().expr():
+                val = self.visit(expr_ctx)
+                self.emit(f"arg {val}")
+
+        self.emit(f"call {nombre}")
+
     def visitArgumentos(self, ctx):
         return self.visitChildren(ctx)
 
-    #  expresiones 
+    #  expresiones ─
 
     def visitExpr(self, ctx):
-        # llamada a funcion dentro de expresion
         if ctx.llamada_funcion():
             return self.visit(ctx.llamada_funcion())
 
@@ -387,11 +374,16 @@ class C3DGenerador(LenguajeVisitor):
     def visitErrorInstr(self, ctx):
         pass
 
+    def visitTipo(self, ctx):
+        return None
+
     def get_codigo(self):
         return "\n".join(self.codigo)
 
 
-#  TRADUCTOR C3D → C++ 
+# ═══════════════════════════════════════════════════════════════
+#  TRADUCTOR C3D → C++
+# ═══════════════════════════════════════════════════════════════
 
 class C3DAC_Traductor:
 
@@ -410,125 +402,230 @@ class C3DAC_Traductor:
         'flote': 'float',
         'duble': 'double',
         'shen':  'const char*',
+        'vid':   'void',
     }
 
-    def __init__(self, codigo_c3d, tabla_simbolos):
-        self.lineas = codigo_c3d
-        self.tabla  = tabla_simbolos
+    def __init__(self, codigo_c3d, tabla_simbolos, tabla_funciones=None):
+        self.lineas          = codigo_c3d
+        self.tabla           = tabla_simbolos
+        self.tabla_funciones = tabla_funciones or {}
 
-    def _traducir_expr(self, expr):
+    def _tc(self, tipo):
+        return self.TIPO_CPP.get(tipo, 'double')
+
+    def _es_temp(self, s):
+        return s.startswith('t') and s[1:].isdigit()
+
+    def _expr(self, e):
         for op_l, op_c in self.OP_MAP.items():
-            expr = expr.replace(op_l, op_c)
-        return expr
+            e = e.replace(op_l, op_c)
+        return e
 
-    def _es_temp(self, nombre):
-        return nombre.startswith('t') and nombre[1:].isdigit()
+    def _es_shen(self, val):
+        return val.startswith('"') or self.tabla.get(val, '') == 'shen'
 
-    def _es_string_val(self, val):
-        return val.strip().startswith('"')
+    #  separar funciones del codigo principal 
 
-    def _declaraciones_usuario(self):
+    def _separar(self):
+        funciones = {}   # nombre -> lista de lineas C3D
+        main      = []
+        actual    = None
+
+        for linea in self.lineas:
+            l = linea.strip()
+            if l.startswith('func_begin '):
+                actual = l[11:].strip()
+                funciones[actual] = []
+            elif l.startswith('func_end '):
+                actual = None
+            elif actual is not None:
+                funciones[actual].append(linea)
+            else:
+                main.append(linea)
+
+        return funciones, main
+
+    #  declaraciones de variables de usuario ─
+
+    def _decl_usuario(self, tabla):
         lines = []
-        for nombre, tipo in self.tabla.items():
+        for nombre, tipo in tabla.items():
             if tipo == 'shen':
                 lines.append(f'    const char* {nombre} = "";')
             else:
-                lines.append(f'    {self.TIPO_CPP.get(tipo, "double")} {nombre} = 0;')
+                lines.append(f'    {self._tc(tipo)} {nombre} = 0;')
         return lines
 
-    def _declaraciones_temps(self):
+    #  declaraciones de temporales inferidos ─
+
+    def _decl_temps(self, lineas):
         temps = set()
-        for linea in self.lineas:
-            linea = linea.strip()
-            if '=' in linea and not linea.endswith(':'):
-                dest = linea.split('=')[0].strip()
+        for l in lineas:
+            ls = l.strip()
+            if '=' in ls and not ls.endswith(':') \
+               and not ls.startswith('func_') \
+               and not ls.startswith('param_decl') \
+               and not ls.startswith('arg ') \
+               and not ls.startswith('call '):
+                dest = ls.split('=')[0].strip()
                 if self._es_temp(dest):
                     temps.add(dest)
-        temps = sorted(temps, key=lambda x: int(x[1:]))
-        return [f"    double {t};" for t in temps]
+        return [f'    double {t};'
+                for t in sorted(temps, key=lambda x: int(x[1:]))]
 
-    def _traducir_linea(self, linea):
-        l = linea.strip()
-        if not l:
-            return ''
+    #  traducir bloque de lineas C3D con manejo de args ─
 
-        # etiqueta
-        if l.endswith(':') and ' ' not in l:
-            return f"    {l}"
+    def _traducir_bloque(self, lineas, indent='    '):
+        resultado = []
+        # buffer de args pendientes para la proxima call
+        args_buf  = []
 
-        # print
-        if l.startswith('print '):
-            val = self._traducir_expr(l[6:].strip())
-            if self._es_string_val(val):
-                return f'    printf("%s\\n", {val});'
-            if val in self.tabla and self.tabla[val] == 'shen':
-                return f'    printf("%s\\n", {val});'
-            return f'    printf("%g\\n", (double)({val}));'
+        for linea in lineas:
+            l = linea.strip()
+            if not l:
+                continue
 
-        # read (lirf)
-        if l.startswith('read '):
-            var = l[5:].strip()
-            tipo = self.tabla.get(var, 'ontie')
-            fmt = {'ontie': '%d', 'flote': '%f', 'duble': '%lf', 'shen': '%s'}.get(tipo, '%d')
-            return f'    scanf("{fmt}", &{var});'
+            # etiqueta
+            if l.endswith(':') and ' ' not in l:
+                resultado.append(f'{indent}{l}')
+                continue
 
-        # param (push argumento)
-        if l.startswith('param ') and not l.startswith('param_get'):
-            val = self._traducir_expr(l[6:].strip())
-            return f'    // push {val}'
+            # arg — acumular sin emitir nada
+            if l.startswith('arg '):
+                args_buf.append(self._expr(l[4:].strip()))
+                continue
 
-        # param_get (recibir parametro)
-        if l.startswith('param_get '):
-            var = l[10:].strip()
-            return f'    // param {var}'
+            # param_decl — ya esta en la firma, ignorar
+            if l.startswith('param_decl '):
+                continue
 
-        # call
-        if '= call ' in l:
-            dest, resto = l.split('=', 1)
-            nombre = resto.replace('call', '').strip()
-            return f'    {dest.strip()} = {nombre}();'
+            # tN = call nombre
+            if '= call ' in l:
+                dest   = l.split('=')[0].strip()
+                nombre = l.split('call ')[1].strip()
+                args   = ', '.join(args_buf)
+                args_buf = []
+                resultado.append(f'{indent}{dest} = {nombre}({args});')
+                continue
 
-        # return
-        if l.startswith('return'):
-            resto = l[6:].strip()
-            if resto:
-                return f'    return (int)({self._traducir_expr(resto)});'
-            return '    return 0;'
+            # call nombre  (sin retorno)
+            if l.startswith('call '):
+                nombre = l[5:].strip()
+                args   = ', '.join(args_buf)
+                args_buf = []
+                resultado.append(f'{indent}{nombre}({args});')
+                continue
 
-        # if cond goto label
-        if l.startswith('if '):
-            idx   = l.rfind(' goto ')
-            cond  = self._traducir_expr(l[3:idx].strip())
-            label = l.split()[-1]
-            return f'    if ({cond}) goto {label};'
+            # print
+            if l.startswith('print '):
+                val = self._expr(l[6:].strip())
 
-        # goto
-        if l.startswith('goto '):
-            return f'    goto {l.split()[1]};'
+                if self._es_shen(val):
+                    resultado.append(
+                        indent + 'printf("%s\\\\n", ' + val + ');'
+                    )
+                else:
+                    resultado.append(
+                        f'{indent}printf("%g\\\\n", (double)({val}));'
+                    )
 
-        # asignacion
-        if '=' in l:
-            dest, resto = l.split('=', 1)
-            return f'    {dest.strip()} = {self._traducir_expr(resto.strip())};'
+                continue
 
-        return f'    // {l}'
+            # read
+            if l.startswith('read '):
+                var  = l[5:].strip()
+                tipo = self.tabla.get(var, 'ontie')
+                fmt  = {'ontie':'%d','flote':'%f',
+                        'duble':'%lf','shen':'%s'}.get(tipo,'%d')
+                resultado.append(f'{indent}scanf("{fmt}", &{var});')
+                continue
+
+            # return
+            if l.startswith('return'):
+                resto = l[6:].strip()
+                if resto:
+                    resultado.append(f'{indent}return {self._expr(resto)};')
+                else:
+                    resultado.append(f'{indent}return;')
+                continue
+
+            # if cond goto L
+            if l.startswith('if '):
+                idx   = l.rfind(' goto ')
+                cond  = self._expr(l[3:idx].strip())
+                label = l.split()[-1]
+                resultado.append(f'{indent}if ({cond}) goto {label};')
+                continue
+
+            # goto
+            if l.startswith('goto '):
+                resultado.append(f'{indent}goto {l.split()[1]};')
+                continue
+
+            # asignacion
+            if '=' in l:
+                dest, resto = l.split('=', 1)
+                resultado.append(
+                    f'{indent}{dest.strip()} = {self._expr(resto.strip())};')
+                continue
+
+            resultado.append(f'{indent}// {l}')
+
+        return resultado
+
+    #  generar C++ completo 
 
     def generar_cpp(self):
-        cpp = [
-            '#include <stdio.h>',
-            '#include <string.h>',
-            '',
-            'int main() {',
-        ]
-        cpp += self._declaraciones_usuario()
-        cpp += self._declaraciones_temps()
-        if self._declaraciones_usuario() or self._declaraciones_temps():
+        funciones, main_lineas = self._separar()
+
+        cpp = ['#include <stdio.h>', '#include <stdlib.h>', '']
+
+        # declaraciones forward de funciones
+        for nombre, info in self.tabla_funciones.items():
+            tipo_r    = self._tc(info.get('retorno', 'vid'))
+            params    = info.get('params', [])
+            param_str = ', '.join(f"{self._tc(t)} {n}" for t, n in params)
+            cpp.append(f'{tipo_r} {nombre}({param_str});')
+
+        if self.tabla_funciones:
             cpp.append('')
 
-        for linea in self.lineas:
-            cpp.append(self._traducir_linea(linea))
+        # definiciones de funciones
+        for nombre, lineas_func in funciones.items():
+            info      = self.tabla_funciones.get(nombre, {})
+            tipo_r    = self._tc(info.get('retorno', 'vid'))
+            params    = info.get('params', [])
+            param_str = ', '.join(f"{self._tc(t)} {n}" for t, n in params)
 
-        cpp += ['', '    return 0;', '}']
+            cpp.append(f'{tipo_r} {nombre}({param_str}) {{')
+
+            # temporales locales de la funcion
+            for d in self._decl_temps(lineas_func):
+                cpp.append(d)
+            if self._decl_temps(lineas_func):
+                cpp.append('')
+
+            cpp += self._traducir_bloque(lineas_func)
+            cpp.append('}')
+            cpp.append('')
+
+        # main
+        cpp.append('int main() {')
+        cpp += self._decl_usuario(self.tabla)
+        cpp += self._decl_temps(main_lineas)
+
+        if self._decl_usuario(self.tabla) or self._decl_temps(main_lineas):
+            cpp.append('')
+
+        cpp += self._traducir_bloque(main_lineas)
+# solo agregar return 0 si el ultimo codigo del main no tiene return
+        ultimas = [l.strip() for l in self._traducir_bloque(main_lineas) if l.strip()]
+        tiene_return = ultimas and ultimas[-1].startswith('return')
+        if not tiene_return:
+            cpp.append('')
+            cpp.append('    return 0;')
+        cpp.append('}')
+
         return '\n'.join(cpp)
 
     def guardar(self, ruta='salida.cpp'):
