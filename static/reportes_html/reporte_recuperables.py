@@ -82,7 +82,10 @@ def main():
             <td>{r['sugerencia']}</td>
         </tr>"""
 
-    html = html.replace('<tbody id="tbody">', f'<tbody id="tbody">{filas}')
+    html = html.replace(
+    '<!-- PYTHON_INSERTA_FILAS_AQUI -->',
+    filas
+)
 
     with open(os.path.join(ruta_raiz, "reportes_html", "reporte_recuperables.html"), "w", encoding="utf-8") as f:
         f.write(html)
