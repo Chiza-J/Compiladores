@@ -17,6 +17,10 @@ class C3DOptimizador:
             code = self._reducir_saltos(code)
             code = self._eliminar_goto_siguiente(code)
             code = self._reutilizar_temporales(code)
+            # Nuevas fases (seguras)
+            code = self._eliminar_etiquetas_muertas(code)
+            code = self._eliminar_asignaciones_redundantes(code)
+            code = self._fusionar_goto_seguro(code)
             if code == prev:
                 break
         return code
@@ -46,7 +50,7 @@ class C3DOptimizador:
             return cond.replace(' aye ', ' minog ')
         return None
 
-    # ========== PASES ==========
+    # ========== FASES EXISTENTES (sin cambios) ==========
     def _propagar_constantes(self, code):
         const = {}
         out = []
@@ -113,7 +117,9 @@ class C3DOptimizador:
             if '=' in line:
                 rhs = line.split('=', 1)[1]
                 used.update(re.findall(r'\bt\d+\b', rhs))
-            else:
+            if line.startswith('if '):
+                used.update(re.findall(r'\bt\d+\b', line))
+            if line.startswith('arg '):
                 used.update(re.findall(r'\bt\d+\b', line))
         out = []
         for line in code:
@@ -176,4 +182,106 @@ class C3DOptimizador:
                 return mapping[t]
             new_line = re.sub(r'\bt\d+\b', repl, line)
             out.append(new_line)
+        return out
+
+    # ========== NUEVAS FASES SEGURAS ==========
+    def _eliminar_etiquetas_muertas(self, code):
+        """
+        Elimina etiquetas que:
+        1) No son destino de ningún salto (condicional o incondicional).
+        2) No tienen instrucciones después (excepto otras etiquetas muertas).
+        """
+        # Destinos de todos los saltos
+        destinos = set()
+        for line in code:
+            if line.startswith('if ') and ' goto ' in line:
+                label = line.split()[-1]
+                destinos.add(label)
+            elif line.startswith('goto '):
+                label = line.split()[1]
+                destinos.add(label)
+
+        # Identificar etiquetas definidas
+        etiquetas = {}
+        for i, line in enumerate(code):
+            if line.endswith(':') and ' ' not in line:
+                label = line[:-1]
+                etiquetas[label] = i
+
+        # Marcar etiquetas que son destino y las que tienen código después
+        etiquetas_a_borrar = set()
+        for label, pos in etiquetas.items():
+            # Si es destino, no se borra
+            if label in destinos:
+                continue
+            # Buscar si después de esta etiqueta hay algo útil (no otra etiqueta muerta)
+            j = pos + 1
+            while j < len(code) and (code[j].endswith(':') and ' ' not in code[j]):
+                j += 1
+            if j < len(code):
+                # Hay código después, no se puede borrar
+                continue
+            # Si no hay código después, se puede borrar
+            etiquetas_a_borrar.add(label)
+
+        # Filtrar
+        out = [line for line in code if not (line.endswith(':') and line[:-1] in etiquetas_a_borrar)]
+        return out
+
+    def _eliminar_asignaciones_redundantes(self, code):
+        """Elimina asignaciones consecutivas idénticas y x = x."""
+        out = []
+        i = 0
+        while i < len(code):
+            cur = code[i].strip()
+            if i+1 < len(code) and '=' in cur and not cur.startswith('if ') and not cur.endswith(':'):
+                nxt = code[i+1].strip()
+                if cur == nxt:
+                    out.append(cur)
+                    i += 2
+                    continue
+                # x = x
+                if re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\1$', cur):
+                    i += 1
+                    continue
+            out.append(cur)
+            i += 1
+        return out
+
+    def _fusionar_goto_seguro(self, code):
+        """
+        Convierte: goto L1; L1: goto L2  ->  goto L2
+        Siempre que L1 no sea destino de ningún otro salto.
+        """
+        # Destinos de todos los saltos
+        destinos = set()
+        for line in code:
+            if line.startswith('if ') and ' goto ' in line:
+                label = line.split()[-1]
+                destinos.add(label)
+            elif line.startswith('goto '):
+                label = line.split()[1]
+                destinos.add(label)
+
+        out = []
+        i = 0
+        while i < len(code):
+            cur = code[i].strip()
+            # Patrón: goto LABEL en línea i, y línea i+1 es "LABEL: goto OTRA"
+            if cur.startswith('goto ') and i+2 < len(code):
+                label1 = cur.split()[1]
+                nxt = code[i+1].strip()
+                nxt2 = code[i+2].strip() if i+2 < len(code) else ""
+                if nxt == f"{label1}:" and nxt2.startswith('goto '):
+                    # Verificar que label1 no es destino de ningún otro salto (excepto esta línea)
+                    # Contar cuántas veces aparece label1 en destinos, excluyendo la actual
+                    count = sum(1 for d in destinos if d == label1)
+                    if count == 1:   # solo esta línea lo referencia
+                        # Reemplazar el primer goto por goto de la segunda etiqueta
+                        label2 = nxt2.split()[1]
+                        out.append(f"goto {label2}")
+                        i += 2   # saltamos la etiqueta y el segundo goto
+                        continue
+            out.append(cur)
+            i += 1
         return out
