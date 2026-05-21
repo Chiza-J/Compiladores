@@ -23,7 +23,7 @@ class AnalizadorSemantico(LenguajeVisitor):
         for func_vars in self.tabla_por_funcion.values():
             flat.update(func_vars)
         return flat
-    # ========== HELPERS ==========
+    #  HELPERS 
 
     def abrir_scope(self):
         self.pila_scopes.append({})
@@ -84,7 +84,7 @@ class AnalizadorSemantico(LenguajeVisitor):
     def es_compatible(self, destino, origen):
         if destino == origen: return True
         if destino == 'duble' and origen in ('ontie','flote','duble'): return True
-        if destino == 'flote' and origen in ('ontie','flote'): return True
+        if destino == 'flote' and origen in ('ontie','flote','duble'): return True
         return False
 
     def promocion(self, t1, t2):
@@ -147,7 +147,7 @@ class AnalizadorSemantico(LenguajeVisitor):
 
         return 'error'
 
-    # ========== VISITORS ==========
+    #  VISITORS 
 
     def visitPrograma(self, ctx):
         for child in ctx.getChildren():
