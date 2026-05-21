@@ -191,11 +191,8 @@
 
         </div>
 
-        <!--
-            El script Python reemplaza el contenido de este div
-            usando id="badge".
-        -->
-        <div class="badge" id="badge">0 eventos</div>
+        <!-- El marcador será reemplazado por Python -->
+        <div class="badge" id="badge">{{BADGE}}</div>
 
     </div>
 
@@ -218,13 +215,9 @@
                 </tr>
             </thead>
 
-            <!--
-                IMPORTANTE: el id="tbody" debe estar en la etiqueta
-                <tbody> para que el script Python lo encuentre con regex.
-                No mover ni renombrar este id.
-            -->
+            <!-- Las filas se insertan aquí -->
             <tbody id="tbody">
-<!-- PYTHON_INSERTA_FILAS_AQUI -->
+                {{FILAS}}
             </tbody>
 
         </table>

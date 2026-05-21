@@ -273,89 +273,48 @@ def construir_filas(historial):
 # MAIN — CORREGIDO: ahora genera el HTML
 # 
 
-def main():
 
+def main(ruta_fuente="programa.leng"):
+    global ruta_raiz
     ruta_reportes = os.path.join(ruta_raiz, 'reportes_html')
     os.makedirs(ruta_reportes, exist_ok=True)
 
-    # el HTML base es el archivo tabla_simbolos.html que ya existe
-    ruta_base   = os.path.join(ruta_reportes, 'tabla_simbolos.html')
-    ruta_salida = os.path.join(ruta_reportes, 'tabla_simbolos.html')
-
-    input_stream = FileStream(
-        os.path.join(ruta_raiz, 'programa.leng'),
-        encoding='utf-8'
-    )
-
-    lexer  = LenguajeLexer(input_stream)
+    input_stream = FileStream(os.path.join(ruta_raiz, ruta_fuente), encoding='utf-8')
+    lexer = LenguajeLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = LenguajeParser(stream)
-
     listener = MiErrorListener()
     parser.removeErrorListeners()
     parser.addErrorListener(listener)
     tree = parser.programa()
 
     if listener.hay_error:
-        print("No se genero tabla de simbolos (error sintactico)")
+        print("No se generó tabla de símbolos (error sintáctico)")
         return
 
     visitor = TablaSimbolosVisitor()
     visitor.visit(tree)
 
-    if visitor.errores:
-        print("Errores semanticos encontrados")
-        for e in visitor.errores:
-            print(f"Linea {e['linea']}, Col {e['columna']}: {e['mensaje']}")
-        # no retornamos — igual generamos la tabla con lo que se pudo analizar
-
-    #  leer base ─
-    # Buscamos el template. Puede llamarse tabla_simbolos_base.html
-    # o ya ser tabla_simbolos.html con el placeholder adentro.
+    # Leer template (mejor usar marcador {{FILAS}})
     ruta_template = os.path.join(ruta_reportes, 'tabla_simbolos_base.html')
     if not os.path.exists(ruta_template):
-        # intentar con el mismo archivo de salida como template
-        ruta_template = ruta_base
-
-    if not os.path.exists(ruta_template):
-        print("ERROR: no se encontro tabla_simbolos_base.html ni tabla_simbolos.html")
-        return
-
+        ruta_template = os.path.join(ruta_reportes, 'tabla_simbolos.html')
     with open(ruta_template, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    #  inyectar filas 
-    # El placeholder en el HTML es:
-    #   <!-- PYTHON_INSERTA_FILAS_AQUI -->
-    # pero puede tener espacios/saltos alrededor; usamos re para
-    # reemplazar todo el contenido del tbody de forma segura.
-    import re
-
     filas = construir_filas(visitor.historial)
+    html = html.replace('{{FILAS}}', filas)   # Cambia el marcador en tu HTML
 
-    # reemplazar contenido completo del tbody (robusto ante espacios)
-    html = re.sub(
-        r'(<tbody[^>]*id=["\']tbody["\'][^>]*>)(.*?)(</tbody>)',
-        rf'\g<1>\n{filas}\n\g<3>',
-        html,
-        flags=re.DOTALL
-    )
-
-    # actualizar el badge con JS inline (reemplazar el 0 inicial)
     total = len(visitor.historial)
-    badge_txt = f'{total} evento{"s" if total != 1 else ""}'
-    html = re.sub(
-        r'(<div[^>]*id=["\']badge["\'][^>]*>)[^<]*(</div>)',
-        rf'\g<1>{badge_txt}\g<2>',
-        html
-    )
+    badge = f'{total} evento{"s" if total != 1 else ""}'
+    html = html.replace('{{BADGE}}', badge)
 
-    #  guardar ─
-    with open(ruta_salida, 'w', encoding='utf-8') as f:
+    with open(os.path.join(ruta_reportes, 'tabla_simbolos.html'), 'w', encoding='utf-8') as f:
         f.write(html)
 
-    print(f"{total} evento(s) registrado(s) → tabla_simbolos.html")
-
+    print(f"{total} evento(s) registrado(s)")
 
 if __name__ == '__main__':
-    main()
+    import sys
+    fuente = sys.argv[1] if len(sys.argv) > 1 else "programa.leng"
+    main(fuente)
