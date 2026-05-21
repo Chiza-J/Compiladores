@@ -598,10 +598,10 @@ class C3DAC_Traductor:
             if l.startswith('print '):
                 val = self._expr(l[6:].strip())
                 if self._es_shen(val):
-                    resultado.append(f'{indent}printf("%s\\n", {val});')
+                    resultado.append(f'{indent}printf("%s\\\\n", {val});')
                 else:
                     resultado.append(
-                        f'{indent}printf("%g\\n", (double)({val}));'
+                        f'{indent}printf("%g\\\\n", (double)({val}));'
                     )
                 continue
 
