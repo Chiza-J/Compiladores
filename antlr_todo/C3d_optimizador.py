@@ -7,188 +7,173 @@ class C3DOptimizador:
         self.tabla = tabla_simbolos
 
     def optimizar(self):
-        codigo = list(self.codigo)
+        code = list(self.codigo)
         for _ in range(10):
-            anterior = list(codigo)
-            codigo = self._propagar_constantes(codigo)
-            codigo = self._propagar_copias(codigo)
-            codigo = self._simplificar_temporales(codigo)
-            codigo = self._eliminar_muertos(codigo)
-            codigo = self._reducir_saltos(codigo)
-            codigo = self._eliminar_goto_siguiente(codigo)
-            codigo = self._reutilizar_temporales(codigo)
-            if codigo == anterior:
+            prev = list(code)
+            code = self._propagar_constantes(code)
+            code = self._propagar_copias(code)
+            code = self._simplificar_temporales(code)
+            code = self._eliminar_muertos(code)
+            code = self._reducir_saltos(code)
+            code = self._eliminar_goto_siguiente(code)
+            code = self._reutilizar_temporales(code)
+            if code == prev:
                 break
-        return codigo
+        return code
 
-    # HELPERS
+    # ========== UTILS ==========
     @staticmethod
-    def _es_temp(nombre):
-        return re.match(r'^t\d+$', nombre) is not None
+    def _es_temp(n):
+        return re.match(r'^t\d+$', n) is not None
 
     @staticmethod
-    def _es_numero(txt):
+    def _es_num(t):
         try:
-            float(txt)
+            float(t)
             return True
         except:
             return False
 
     @staticmethod
-    def _es_string(txt):
-        return txt.startswith('"') and txt.endswith('"')
+    def _es_str(t):
+        return t.startswith('"') and t.endswith('"')
 
     @staticmethod
-    def _invertir_operador(cond):
+    def _invertir(cond):
         if ' minog ' in cond:
             return cond.replace(' minog ', ' aye ')
         if ' aye ' in cond:
             return cond.replace(' aye ', ' minog ')
-        # compag no se invierte fácilmente, se deja igual
         return None
 
-    # 1. PROPAGACION CONSTANTES
-    def _propagar_constantes(self, codigo):
-        constantes = {}
-        resultado = []
-        for linea in codigo:
-            l = linea.strip()
-            if '=' not in l or l.startswith('if ') or l.endswith(':'):
-                resultado.append(l)
+    # ========== PASES ==========
+    def _propagar_constantes(self, code):
+        const = {}
+        out = []
+        for line in code:
+            if '=' not in line or line.startswith('if ') or line.endswith(':'):
+                out.append(line)
                 continue
-            dest, expr = l.split('=', 1)
-            dest = dest.strip()
+            dst, expr = line.split('=', 1)
+            dst = dst.strip()
             expr = expr.strip()
-            for temp, valor in constantes.items():
-                expr = re.sub(r'\b' + re.escape(temp) + r'\b', valor, expr)
-            nueva = f"{dest} = {expr}"
-            resultado.append(nueva)
-            if self._es_temp(dest):
-                if self._es_numero(expr) or self._es_string(expr):
-                    constantes[dest] = expr
-                else:
-                    constantes.pop(dest, None)
-        return resultado
+            for t, v in const.items():
+                expr = re.sub(r'\b' + re.escape(t) + r'\b', v, expr)
+            new = f"{dst} = {expr}"
+            out.append(new)
+            if self._es_temp(dst) and (self._es_num(expr) or self._es_str(expr)):
+                const[dst] = expr
+            else:
+                const.pop(dst, None)
+        return out
 
-    # 2. PROPAGACION COPIAS
-    def _propagar_copias(self, codigo):
-        copias = {}
-        resultado = []
-        for linea in codigo:
-            l = linea.strip()
-            if '=' not in l or l.startswith('if ') or l.endswith(':'):
-                resultado.append(l)
+    def _propagar_copias(self, code):
+        copies = {}
+        out = []
+        for line in code:
+            if '=' not in line or line.startswith('if ') or line.endswith(':'):
+                out.append(line)
                 continue
-            dest, expr = l.split('=', 1)
-            dest = dest.strip()
+            dst, expr = line.split('=', 1)
+            dst = dst.strip()
             expr = expr.strip()
-            for temp, original in copias.items():
-                expr = re.sub(r'\b' + re.escape(temp) + r'\b', original, expr)
-            nueva = f"{dest} = {expr}"
-            resultado.append(nueva)
-            if self._es_temp(dest):
-                if re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', expr):
-                    copias[dest] = expr
-                else:
-                    copias.pop(dest, None)
-            for t, orig in list(copias.items()):
-                if orig == dest:
-                    del copias[t]
-        return resultado
+            for t, orig in copies.items():
+                expr = re.sub(r'\b' + re.escape(t) + r'\b', orig, expr)
+            new = f"{dst} = {expr}"
+            out.append(new)
+            if self._es_temp(dst) and re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', expr):
+                copies[dst] = expr
+            else:
+                copies.pop(dst, None)
+            for t, orig in list(copies.items()):
+                if orig == dst:
+                    del copies[t]
+        return out
 
-    # 3. SIMPLIFICAR TEMPORALES (t1 = x; a = t1  -> a = x)
-    def _simplificar_temporales(self, codigo):
-        resultado = []
+    def _simplificar_temporales(self, code):
+        out = []
         i = 0
-        while i < len(codigo):
-            actual = codigo[i].strip()
-            if i + 1 < len(codigo):
-                siguiente = codigo[i + 1].strip()
-                m1 = re.match(r'^(t\d+)\s*=\s*(.+)$', actual)
-                m2 = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(t\d+)$', siguiente)
+        while i < len(code):
+            cur = code[i].strip()
+            if i + 1 < len(code):
+                nxt = code[i+1].strip()
+                m1 = re.match(r'^(t\d+)\s*=\s*(.+)$', cur)
+                m2 = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(t\d+)$', nxt)
                 if m1 and m2 and m1.group(1) == m2.group(2):
-                    resultado.append(f"{m2.group(1)} = {m1.group(2)}")
+                    out.append(f"{m2.group(1)} = {m1.group(2)}")
                     i += 2
                     continue
-            resultado.append(actual)
+            out.append(cur)
             i += 1
-        return resultado
+        return out
 
-    # 4. ELIMINAR MUERTOS (temporales no usados)
-    def _eliminar_muertos(self, codigo):
-        usados = set()
-        for linea in codigo:
-            l = linea.strip()
-            # Buscar usos en RHS
-            if '=' in l:
-                rhs = l.split('=', 1)[1]
-                usados.update(re.findall(r'\bt\d+\b', rhs))
+    def _eliminar_muertos(self, code):
+        used = set()
+        for line in code:
+            if '=' in line:
+                rhs = line.split('=', 1)[1]
+                used.update(re.findall(r'\bt\d+\b', rhs))
             else:
-                usados.update(re.findall(r'\bt\d+\b', l))
-        resultado = []
-        for linea in codigo:
-            l = linea.strip()
-            if '=' in l and not l.startswith('if ') and not l.endswith(':'):
-                dest = l.split('=', 1)[0].strip()
-                if self._es_temp(dest) and dest not in usados:
+                used.update(re.findall(r'\bt\d+\b', line))
+        out = []
+        for line in code:
+            if '=' in line and not line.startswith('if ') and not line.endswith(':'):
+                dst = line.split('=', 1)[0].strip()
+                if self._es_temp(dst) and dst not in used:
                     continue
-            resultado.append(l)
-        return resultado
+            out.append(line)
+        return out
 
-    # 5. REDUCCION DE SALTOS (if cond goto L1; goto L2; L1: ...  -> if !cond goto L2)
-    def _reducir_saltos(self, codigo):
-        resultado = list(codigo)
+    def _reducir_saltos(self, code):
+        res = list(code)
         i = 0
-        while i < len(resultado) - 2:
-            l1 = resultado[i].strip()
-            l2 = resultado[i + 1].strip()
-            l3 = resultado[i + 2].strip()
+        while i < len(res) - 2:
+            l1 = res[i].strip()
+            l2 = res[i+1].strip()
+            l3 = res[i+2].strip()
             if (l1.startswith('if ') and ' goto ' in l1 and
                 l2.startswith('goto ') and l3.endswith(':')):
-                label_true = l1.split()[-1]
-                label_false = l2.split()[-1]
-                label_next = l3[:-1]
-                if label_true == label_next:
+                true_label = l1.split()[-1]
+                false_label = l2.split()[-1]
+                next_label = l3[:-1]
+                if true_label == next_label:
                     idx = l1.rfind(' goto ')
                     cond = l1[3:idx].strip()
-                    invertida = self._invertir_operador(cond)
-                    if invertida:
-                        resultado[i] = f"if {invertida} goto {label_false}"
-                        resultado.pop(i + 1)
+                    inv = self._invertir(cond)
+                    if inv:
+                        res[i] = f"if {inv} goto {false_label}"
+                        res.pop(i+1)
                         continue
             i += 1
-        return resultado
+        return res
 
-    # 6. ELIMINAR GOTO INUTIL (goto L; L: -> eliminar goto)
-    def _eliminar_goto_siguiente(self, codigo):
-        resultado = []
+    def _eliminar_goto_siguiente(self, code):
+        out = []
         i = 0
-        while i < len(codigo):
-            actual = codigo[i].strip()
-            if actual.startswith('goto ') and i + 1 < len(codigo):
-                label = actual.split()[1]
-                siguiente = codigo[i + 1].strip()
-                if siguiente == f"{label}:":
+        while i < len(code):
+            cur = code[i].strip()
+            if cur.startswith('goto ') and i+1 < len(code):
+                label = cur.split()[1]
+                nxt = code[i+1].strip()
+                if nxt == f"{label}:":
                     i += 1
                     continue
-            resultado.append(actual)
+            out.append(cur)
             i += 1
-        return resultado
+        return out
 
-    # 7. REUTILIZAR TEMPORALES (renumerar secuencialmente)
-    def _reutilizar_temporales(self, codigo):
-        temp_map = {}
-        next_temp = 1
-        nuevo_codigo = []
-        for linea in codigo:
-            l = linea.strip()
+    def _reutilizar_temporales(self, code):
+        mapping = {}
+        next_t = 1
+        out = []
+        for line in code:
             def repl(m):
-                nonlocal next_temp
+                nonlocal next_t
                 t = m.group(0)
-                if t not in temp_map:
-                    temp_map[t] = f"t{next_temp}"
-                    next_temp += 1
-                return temp_map[t]
-            nueva = re.sub(r'\bt\d+\b', repl, l)
-            nuevo_codigo.append(nueva)
-        return nuevo_codigo
+                if t not in mapping:
+                    mapping[t] = f"t{next_t}"
+                    next_t += 1
+                return mapping[t]
+            new_line = re.sub(r'\bt\d+\b', repl, line)
+            out.append(new_line)
+        return out
