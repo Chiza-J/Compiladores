@@ -35,7 +35,7 @@ instruccion
     | errorInstr
     ;
 
-// ── DECLARACION ──────────────────────────────────────────────
+//  DECLARACION 
 // ontie x iyal 10 puavir
 declaracion
     : ONTIE ID IGUAL expr_entera  PUNTOCOMA
@@ -44,43 +44,43 @@ declaracion
     | SHEN  ID IGUAL expr_string  PUNTOCOMA
     ;
 
-// ── ASIGNACION ───────────────────────────────────────────────
+//  ASIGNACION ─
 // x iyal expr puavir
 asignacion
     : ID IGUAL expr PUNTOCOMA
     ;
 
-// ── IMPRESION ────────────────────────────────────────────────
+//  IMPRESION 
 // amprimi(expr) puavir
 impresion
     : AMPRIMI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO PUNTOCOMA
     ;
 
-// ── ENTRADA DE DATOS ─────────────────────────────────────────
+//  ENTRADA DE DATOS ─
 // lirf(x) puavir
 entrada
     : LIRF PARENTESIS_ABIERTO ID PARENTESIS_CERRADO PUNTOCOMA
     ;
 
-// ── IF / ELSE ────────────────────────────────────────────────
+//  IF / ELSE 
 condicion_if
     : WI PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque
       (OTRE bloque)?
     ;
 
-// ── WHILE ────────────────────────────────────────────────────
+//  WHILE 
 // pendan(expr) { }
 ciclo_while
     : PENDAN PARENTESIS_ABIERTO expr PARENTESIS_CERRADO bloque
     ;
 
-// ── DO-WHILE ─────────────────────────────────────────────────
+//  DO-WHILE ─
 // fer_pendan { } pendan(expr) puavir
 ciclo_fer_pendan
     : FER_PENDAN bloque PENDAN PARENTESIS_ABIERTO expr PARENTESIS_CERRADO PUNTOCOMA
     ;
 
-// ── FOR ──────────────────────────────────────────────────────
+//  FOR 
 // pur(init puavir cond puavir step) { }
 ciclo_pur
     : PUR PARENTESIS_ABIERTO
@@ -104,7 +104,7 @@ pur_step
     : ID IGUAL expr
     ;
 
-// ── SWITCH ───────────────────────────────────────────────────
+//  SWITCH ─
 // shangshe(expr) { ca 1 { } ca 2 { } difu { } }
 condicion_switch
     : SHANGSHE PARENTESIS_ABIERTO expr PARENTESIS_CERRADO
@@ -122,27 +122,27 @@ caso_default
     : DIFU LLAVE_ABIERTA instrucciones LLAVE_CERRADA
     ;
 
-// ── BREAK ────────────────────────────────────────────────────
+//  BREAK 
 sentencia_pos
     : POS PUNTOCOMA
     ;
 
-// ── CONTINUE ─────────────────────────────────────────────────
+//  CONTINUE ─
 sentencia_contine
     : CONTINE PUNTOCOMA
     ;
 
-// ── GOTO ─────────────────────────────────────────────────────
+//  GOTO ─
 sentencia_su
     : SU ID PUNTOCOMA
     ;
 
-// ── RETURN ───────────────────────────────────────────────────
+//  RETURN ─
 retorno
     : RETUR expr? PUNTOCOMA
     ;
 
-// ── FUNCIONES ────────────────────────────────────────────────
+//  FUNCIONES 
 // funcion ontie suma pasuvert ontie a puavir ontie b pasferme { retur a plu b puavir }
 // funcion vid saludar pasuvert pasferme { amprimi("hola") puavir }
 funcion_def
@@ -181,7 +181,7 @@ llamada_funcion_stmt
     : llamada_funcion PUNTOCOMA
     ;
 
-// ── EXPRESIONES ──────────────────────────────────────────────
+//  EXPRESIONES 
 expr
     : <assoc=left> expr OP expr
     | llamada_funcion

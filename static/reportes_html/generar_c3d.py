@@ -14,7 +14,6 @@ from antlr_todo.C3D_generador       import C3DGenerador, C3DAC_Traductor
 from antlr_todo.C3d_optimizador     import C3DOptimizador
 
 
-# ── listener silencioso ───────────────────────────────────────
 class ErrorSilencioso(ErrorListener):
     def __init__(self):
         self.hay_error = False
@@ -22,33 +21,22 @@ class ErrorSilencioso(ErrorListener):
         self.hay_error = True
 
 
-# ── tipo de instruccion para la tabla visual ──────────────────
 def tipo_instruccion(linea):
     l = linea.strip()
     if not l:
         return ''
     if l.endswith(':') and ' ' not in l:
         return 'etiqueta'
-    if l.startswith('func_begin'):
-        return 'func_inicio'
-    if l.startswith('func_end'):
-        return 'func_fin'
-    if l.startswith('param_decl'):
-        return 'parametro'
-    if l.startswith('arg '):
-        return 'argumento'
-    if l.startswith('if '):
-        return 'condicional'
-    if l.startswith('goto '):
-        return 'salto'
-    if l.startswith('print '):
-        return 'impresion'
-    if l.startswith('read '):
-        return 'entrada'
-    if l.startswith('return'):
-        return 'retorno'
-    if 'call ' in l:
-        return 'llamada'
+    if l.startswith('func_begin'):  return 'func_inicio'
+    if l.startswith('func_end'):    return 'func_fin'
+    if l.startswith('param_decl'):  return 'parametro'
+    if l.startswith('arg '):        return 'argumento'
+    if l.startswith('if '):         return 'condicional'
+    if l.startswith('goto '):       return 'salto'
+    if l.startswith('print '):      return 'impresion'
+    if l.startswith('read '):       return 'entrada'
+    if l.startswith('return'):      return 'retorno'
+    if 'call ' in l:                return 'llamada'
     if '=' in l:
         dest = l.split('=')[0].strip()
         if re.match(r'^t\d+$', dest):
@@ -74,7 +62,6 @@ COLORES = {
 }
 
 
-# ── construir filas HTML para una lista de instrucciones ──────
 def construir_filas(codigo):
     filas = ''
     for i, linea in enumerate(codigo):
@@ -84,16 +71,17 @@ def construir_filas(codigo):
         color       = COLORES.get(tipo, '#c8d8f8')
         badge_color = COLORES.get(tipo, '#3a4a6a')
         bg          = '#0d1225' if i % 2 == 0 else '#090d1a'
-        filas += f"""
-        <tr style="background:{bg}">
-            <td>{i + 1}</td>
-            <td style="color:{color};font-weight:500">{linea}</td>
-            <td><span style="color:{badge_color};font-size:10px;letter-spacing:.06em">{tipo}</span></td>
-        </tr>"""
+        filas += (
+            f'\n        <tr style="background:{bg}">'
+            f'<td>{i + 1}</td>'
+            f'<td style="color:{color};font-weight:500">{linea}</td>'
+            f'<td><span style="color:{badge_color};font-size:10px;'
+            f'letter-spacing:.06em">{tipo}</span></td>'
+            f'</tr>'
+        )
     return filas
 
 
-# ── MAIN ─────────────────────────────────────────────────────
 def main():
     ruta_reportes = os.path.join(ruta_raiz, 'reportes_html')
     ruta_base     = os.path.join(ruta_reportes, 'c3d_base.html')
@@ -128,6 +116,7 @@ def main():
         return
 
     # C3D crudo
+    # CORREGIDO: pasamos tabla_simbolos del semantico al generador
     generador = C3DGenerador(semantico.tabla_simbolos)
     generador.visit(tree)
     codigo_crudo = generador.codigo
@@ -137,17 +126,20 @@ def main():
     codigo_opt = opt.optimizar()
 
     # guardar archivos planos
+    os.makedirs(ruta_reportes, exist_ok=True)
     with open(os.path.join(ruta_reportes, 'salida.c3d'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(codigo_crudo))
 
     with open(os.path.join(ruta_reportes, 'salida_opt.c3d'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(codigo_opt))
 
-    # C++ desde el codigo optimizado usando el traductor correcto
+    # C++ desde el codigo optimizado
+    # CORREGIDO: pasamos locals_por_funcion del generador al traductor
     traductor = C3DAC_Traductor(
         codigo_opt,
-        semantico.tabla_simbolos,
-        semantico.tabla_funciones      # <- tabla de funciones para firmas correctas
+        generador.tabla,                    # tabla con vars locales incluidas
+        semantico.tabla_funciones,
+        locals_por_funcion=generador._locals_por_funcion,  # ← NUEVO
     )
     cpp_texto = traductor.generar_cpp()
 
@@ -162,20 +154,19 @@ def main():
     with open(ruta_base, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # inyectar filas tabla cruda
     html = html.replace(
         '<tbody id="tbody">',
         f'<tbody id="tbody">{construir_filas(codigo_crudo)}'
     )
-
-    # inyectar filas tabla optimizada
     html = html.replace(
         '<tbody id="tbody-opt">',
         f'<tbody id="tbody-opt">{construir_filas(codigo_opt)}'
     )
 
-    # inyectar cpp en el bloque pre
-    cpp_escaped = cpp_texto.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    cpp_escaped = (cpp_texto
+                   .replace('&', '&amp;')
+                   .replace('<', '&lt;')
+                   .replace('>', '&gt;'))
     html = re.sub(
         r'<pre id="cpp-code">.*?</pre>',
         f'<pre id="cpp-code">{cpp_escaped}</pre>',
@@ -189,7 +180,6 @@ def main():
     total_crudo = len([l for l in codigo_crudo if l.strip()])
     total_opt   = len([l for l in codigo_opt   if l.strip()])
     reduccion   = total_crudo - total_opt
-
     print(f"C3D: {total_crudo} instrucciones | Optimizado: {total_opt} | Reduccion: {reduccion}")
 
 
